@@ -151,21 +151,6 @@ export default function App() {
   const budget = budgetNiveau(niveau)
   const restant = budget - depenses
 
-  const debloques = useMemo(
-    () =>
-      DATA.playStyles.map((ps) => ({
-        ...ps,
-        ok: ps.exigences.every((e) => (stats[e.attribut] || 0) >= e.seuil),
-        manque: ps.exigences
-          .filter((e) => (stats[e.attribut] || 0) < e.seuil)
-          .map((e) => {
-            const at = DATA.attributs.find((a) => a.id === e.attribut)
-            return (at ? at.nom : e.attribut) + ' ' + e.seuil
-          }),
-      })),
-    [stats]
-  )
-
   const lien = useMemo(() => {
     const deltas = DATA.attributs.map((a) => (stats[a.id] || 0) - (arche.base[a.id] || 0))
     return '#/b/' + encodeBuild(arche.id, niveau, deltas)
