@@ -13,31 +13,30 @@ export default function ArchetypeSelector({
   return (
     <div className="bloc">
       
-      <h2>Archétype</h2>
+      <div className="flex flex-wrap">
+        {GROUPES.map((g) => {
+          const liste = archetypes.filter((a) => a.groupe === g.id)
 
-      {GROUPES.map((g) => {
-        const liste = archetypes.filter((a) => a.groupe === g.id)
+          if (!liste.length) return null
 
-        if (!liste.length) return null
+          return (
+            <div key={g.id} className="p-2 flex">
 
-        return (
-          <div key={g.id} className="groupe">
-            <span className="groupe-nom">{g.label}</span>
-
-            <div className="puces">
-              {liste.map((a) => (
-                <button
-                  key={a.id}
-                  className={'puce' + (a.id === archeId ? ' active' : '')}
-                  onClick={() => changerArchetype(a.id)}
-                >
-                  {a.nom}
-                </button>
-              ))}
+              <div className="mx-1 gap-1 flex">
+                {liste.map((a) => (
+                  <button
+                    key={a.id}
+                    className={'puce' + (a.id === archeId ? ' active' : '')}
+                    onClick={() => changerArchetype(a.id)}
+                  >
+                    {a.nom}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
     </div>
   )
 }
