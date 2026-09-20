@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react'
 import DATA from './data/fc27.json'
 import './styles.css'
 import ArchetypeSelector from './front/ArchetypeSelector.jsx'
+import JaugePoints from './front/molecule/JaugePoints.jsx'
 
 /* ------------------------------------------------------------------ outils */
 
@@ -52,26 +53,6 @@ function decodeBuild(code) {
 
 /* ------------------------------------------------------------- sous-blocs */
 
-function Jauge({ depenses, budget }) {
-  const pct = budget ? Math.min(100, (depenses / budget) * 100) : 0
-  const restant = budget - depenses
-  return (
-    <div className="jauge">
-      <div className="jauge-chiffre">
-        <strong className={restant < 0 ? 'negatif' : ''}>{restant}</strong>
-        <span>AP restants</span>
-      </div>
-      <div className="jauge-piste" role="progressbar" aria-valuenow={depenses} aria-valuemin={0} aria-valuemax={budget}>
-        <div className={'jauge-remplissage' + (restant < 0 ? ' depasse' : '')} style={{ width: pct + '%' }} />
-      </div>
-      <div className="jauge-legende">
-        <span>{depenses} dépensés</span>
-        <span>{budget} au total</span>
-      </div>
-      <p className="jauge-aide">Le chiffre sous le + est le prix du point suivant. Il monte par paliers.</p>
-    </div>
-  )
-}
 
 function LigneAttribut({ attr, valeur, base, plafond, cout, remise, abordable, onChange }) {
   const pct = Math.max(2, Math.min(100, valeur))
@@ -220,26 +201,28 @@ export default function App() {
 
   return (
     <div className="app">
-      <header className="entete">
-        <div className="marque">
-          <span className="marque-jeu">FC 27</span>
-          <h1>Constructeur de build Clubs Pro</h1>
+      <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div>
+          <div className="marque">
+            <span className="marque-jeu">FC 27</span>
+            <h1>Constructeur de build Clubs Pro</h1>
+          </div>
+
+          <p className="accroche">
+            Choisis un archétype, dépense tes points d'attribut, vois le prix du point suivant monter en temps réel.
+          </p>
+          <div className="actions max-w-50 mt-5">
+            <button className="bouton" onClick={copierLien}>
+              {copie ? 'Lien copié' : 'Copier le lien du build'}
+            </button>
+            <button className="bouton fantome" onClick={() => setStats({ ...arche.base })}>
+              Tout remettre à zéro
+            </button>
+          </div>
         </div>
-        <p className="accroche">
-          Choisis un archétype, dépense tes points d'attribut, vois le prix du point suivant monter en temps réel.
-        </p>
-      </header>
 
-      <ArchetypeSelector
-            archetypes={DATA.archetypes}
-            archeId={archeId}
-            changerArchetype={changerArchetype}
-      />
-
-      <div className="grille">
-        <aside className="rail">
-          <Jauge depenses={depenses} budget={budget} />
-
+        <div className="shrink-0">
+          <JaugePoints depenses={depenses} budget={budget} />
           <label className="champ">
             <span className="champ-label">
               Niveau d'archétype <strong>{niveau}</strong>
@@ -252,43 +235,22 @@ export default function App() {
               onChange={(e) => setNiveau(Number(e.target.value))}
             />
           </label>
+        </div>
+      </header>
+      <hr className="my-4 border-gray-700" />
 
-          
+      <ArchetypeSelector
+            archetypes={DATA.archetypes}
+            archeId={archeId}
+            changerArchetype={changerArchetype}
+      />
 
-          <div className="fiche">
-            <p className="fiche-desc">{arche.description}</p>
-            <dl>
-              <div>
-                <dt>Poste</dt>
-                <dd>{arche.positions}</dd>
-              </div>
-              <div>
-                <dt>Signature</dt>
-                <dd>{arche.signature}</dd>
-              </div>
-              {arche.inspiration && arche.inspiration !== '—' ? (
-                <div>
-                  <dt>Inspiré de</dt>
-                  <dd>{arche.inspiration}</dd>
-                </div>
-              ) : null}
-            </dl>
-          </div>
+      <div className="">
 
-          <div className="actions">
-            <button className="bouton" onClick={copierLien}>
-              {copie ? 'Lien copié' : 'Copier le lien du build'}
-            </button>
-            <button className="bouton fantome" onClick={() => setStats({ ...arche.base })}>
-              Tout remettre à zéro
-            </button>
-          </div>
-        </aside>
-
-        <main className="attributs">
+        <main className="flex flex-wrap flex-row gap-10">
           {parCategorie.map(([cat, attrs]) => (
-            <section key={cat} className="categorie">
-              <div className="categorie-tete">
+            <section key={cat} className="flex-1 min-w-[260px]">
+              <div className="flex justify-between items-center">
                 <h2>{cat}</h2>
                 <span className="categorie-moy">
                   <em>moy</em>
@@ -316,26 +278,6 @@ export default function App() {
               </div>
             </section>
           ))}
-
-          <section className="categorie">
-            <div className="categorie-tete">
-              <h2>PlayStyles</h2>
-              <span className="categorie-moy">
-                <em>ouverts</em>
-                {debloques.filter((p) => p.ok).length}
-              </span>
-            </div>
-            <div className="playstyles">
-              {debloques.map((ps) => (
-                <div key={ps.nom} className={'ps' + (ps.ok ? ' ouvert' : '')}>
-                  <span className="ps-nom">{ps.nom}</span>
-                  <span className="ps-etat">
-                    {ps.ok ? 'débloqué' : 'il manque ' + ps.manque.join(', ')}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </section>
         </main>
       </div>
 
