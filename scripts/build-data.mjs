@@ -12,7 +12,7 @@ import { dirname, join } from 'node:path'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SOURCE = join(ROOT, 'data', 'fc27-data.xlsx')
-const CIBLE = join(ROOT, 'src', 'data', 'fc27.json')
+const CIBLE = join(ROOT, 'data', 'fc27.json')
 
 const wb = XLSX.read(readFileSync(SOURCE), { type: 'buffer' })
 
