@@ -1,0 +1,34 @@
+import { reglage, coutPoint, moyenne } from '../../lib/couts.js'
+import LigneAttribut from './LigneAttribut.jsx'
+
+export default function CategorieAttributs({ categorie, attributs, arche, stats, restant, onAjuster }) {
+  return (
+    <section className="flex-1 min-w-[260px]">
+      <div className="flex justify-between items-center categorie-tete">
+        <h2>{categorie}</h2>
+        <span className="categorie-moy">
+          <em>moy</em>
+          {moyenne(attributs, stats)}
+        </span>
+      </div>
+      <div className="lignes">
+        {attributs.map((a) => {
+          const reg = reglage(arche, a.id)
+          const v = stats[a.id] ?? reg.base
+          const cout = coutPoint(arche, a.id, v)
+          return (
+            <LigneAttribut
+              key={a.id}
+              attr={a}
+              reg={reg}
+              valeur={v}
+              cout={cout}
+              abordable={cout !== null && cout <= restant}
+              onChange={(sens) => onAjuster(a.id, sens)}
+            />
+          )
+        })}
+      </div>
+    </section>
+  )
+}

@@ -1,9 +1,11 @@
 /**
- * data/fc27-data.xlsx  ->  src/data/fc27.json
+ * data/fc27-data.xlsx  ->  data/fc27.json
  *
  *   npm run data
  *
- * Chaque onglet a une note en ligne 1, une ligne vide en 2, les en-têtes en 3.
+ * Une feuille par archétype : lignes = attributs, colonnes = paliers de valeur.
+ * Les listes de paliers identiques sont dédupliquées dans data.courbes pour
+ * garder le JSON léger ; chaque attribut ne stocke que l'index de sa courbe.
  */
 import * as XLSX from 'xlsx'
 import { writeFileSync, readFileSync } from 'node:fs'
@@ -16,97 +18,141 @@ const CIBLE = join(ROOT, 'data', 'fc27.json')
 
 const wb = XLSX.read(readFileSync(SOURCE), { type: 'buffer' })
 
-const lire = (nom) => {
+const feuille = (nom) => {
   const ws = wb.Sheets[nom]
-  if (!ws) throw new Error(`Onglet manquant : ${nom}`)
-  return XLSX.utils
-    .sheet_to_json(ws, { range: 2, defval: null })
-    .filter((r) => r.archetype !== null || r.id !== null || r.courbe !== null || r.niveau !== null || r.nom !== null)
+  if (!ws) throw new Error(`Onglet manquant : « ${nom} »`)
+  return ws
 }
+const lire = (nom) =>
+  XLSX.utils
+    .sheet_to_json(feuille(nom), { range: 2, defval: null })
+    .filter((r) => Object.values(r).some((v) => v !== null && v !== ''))
 
 const nb = (v) => (v === null || v === '' ? null : Number(v))
-const txt = (v) => (v === null ? '' : String(v).trim())
-const oui = (v) => /^(oui|yes|true|1|x)$/i.test(txt(v))
+const tx = (v) => (v === null || v === undefined ? '' : String(v).trim())
+const oui = (v) => /^(oui|yes|true|1|x)$/i.test(tx(v))
 
-/* ---------------------------------------------------------------- attributs */
+/* ---------------------------------------------------------------- listes */
 
 const attributs = lire('Attributs').map((r) => ({
-  id: txt(r.id),
-  nom: txt(r.nom),
-  categorie: txt(r.categorie),
+  id: tx(r.id),
+  nom: tx(r.nom),
+  categorie: tx(r.categorie),
 }))
 const idsAttr = new Set(attributs.map((a) => a.id))
 
-/* ------------------------------------------------------------------ courbes */
-
-const courbes = {}
-for (const r of lire('Courbes')) {
-  const nom = txt(r.courbe)
-  if (!nom) continue
-  ;(courbes[nom] ||= []).push({ min: nb(r.valeur_min), max: nb(r.valeur_max), cout: nb(r.cout) })
+const reglages = {}
+for (const r of lire('Reglages')) {
+  const v = nb(r.valeur)
+  reglages[tx(r.cle)] = v === null || Number.isNaN(v) ? tx(r.valeur) : v
 }
-for (const [nom, plages] of Object.entries(courbes)) {
-  plages.sort((a, b) => a.min - b.min)
-  for (let i = 1; i < plages.length; i++) {
-    if (plages[i].min <= plages[i - 1].max) {
-      throw new Error(`Courbes "${nom}" : les plages ${plages[i - 1].min}-${plages[i - 1].max} et ${plages[i].min}-${plages[i].max} se chevauchent`)
+
+/* ------------------------------------------- en-têtes de paliers -------- */
+
+/** « 85-89 » -> [85, 89] ; « 95 » -> [95, 95] ; « ★3 » -> [3, 3] ; sinon null. */
+function bornes(entete) {
+  const h = tx(entete)
+  const etoile = h.match(/^[★*]\s*(\d+)$/)
+  if (etoile) return [Number(etoile[1]), Number(etoile[1])]
+  const plage = h.match(/^(\d+)\s*[-–]\s*(\d+)$/)
+  if (plage) return [Number(plage[1]), Number(plage[2])]
+  if (/^\d+$/.test(h)) return [Number(h), Number(h)]
+  return null
+}
+
+const COLS_FIXES = new Set(['attribut', 'nom', 'categorie', 'cle', 'base', 'limite_min', 'limite_max'])
+
+/* --------------------------------------- dédoublonnage des courbes ------ */
+
+const courbes = []
+const indexCourbe = new Map()
+function courbeIndex(paliers) {
+  const clef = JSON.stringify(paliers)
+  if (!indexCourbe.has(clef)) {
+    indexCourbe.set(clef, courbes.length)
+    courbes.push(paliers)
+  }
+  return indexCourbe.get(clef)
+}
+
+/* --------------------------------------------- lecture d'un archétype --- */
+
+function lireArchetype(nomFeuille, idArchetype) {
+  const lignes = lire(nomFeuille)
+  if (!lignes.length) throw new Error(`Feuille « ${nomFeuille} » vide`)
+
+  const stats = {}
+  for (const r of lignes) {
+    const attr = tx(r.attribut)
+    if (!attr) continue
+    if (!idsAttr.has(attr)) {
+      throw new Error(`Feuille « ${nomFeuille} » : attribut inconnu « ${attr} »`)
     }
+    const base = nb(r.base) ?? 0
+    const min = nb(r.limite_min) ?? base
+    const max = nb(r.limite_max) ?? base
+    if (base < min || base > max) {
+      throw new Error(`« ${nomFeuille} » / ${attr} : base ${base} hors des limites ${min}-${max}`)
+    }
+
+    const paliers = []
+    for (const [entete, valeur] of Object.entries(r)) {
+      if (COLS_FIXES.has(entete)) continue
+      const cout = nb(valeur)
+      if (cout === null || Number.isNaN(cout)) continue
+      const b = bornes(entete)
+      if (!b) continue
+      paliers.push([b[0], b[1], cout])
+    }
+    paliers.sort((x, y) => x[0] - y[0])
+    for (let i = 1; i < paliers.length; i++) {
+      if (paliers[i][0] <= paliers[i - 1][1]) {
+        throw new Error(
+          `« ${nomFeuille} » / ${attr} : paliers ${paliers[i - 1][0]}-${paliers[i - 1][1]} et ${paliers[i][0]}-${paliers[i][1]} se chevauchent`
+        )
+      }
+    }
+
+    stats[attr] = { base, min, max, cle: oui(r.cle), c: courbeIndex(paliers) }
   }
+
+  const manquants = attributs.filter((a) => !stats[a.id]).map((a) => a.id)
+  if (manquants.length) {
+    throw new Error(`Feuille « ${nomFeuille} » : lignes manquantes — ${manquants.join(', ')}`)
+  }
+  return stats
 }
 
-/* -------------------------------------------------------------------- stats */
-
-const stats = {}
-for (const r of lire('Stats')) {
-  const arch = txt(r.archetype)
-  const attr = txt(r.attribut)
-  if (!arch || !attr) continue
-  if (!idsAttr.has(attr)) throw new Error(`Stats : attribut inconnu "${attr}" (archétype ${arch})`)
-  const courbe = txt(r.courbe) || 'A'
-  if (!courbes[courbe]) throw new Error(`Stats : courbe inconnue "${courbe}" (${arch} / ${attr})`)
-  const base = nb(r.base) ?? 0
-  const min = nb(r.limite_min) ?? base
-  const max = nb(r.limite_max) ?? base
-  if (base < min || base > max) {
-    throw new Error(`Stats : ${arch} / ${attr} — base ${base} hors des limites ${min}-${max}`)
-  }
-  ;(stats[arch] ||= {})[attr] = { base, min, max, courbe, cle: oui(r.cle) }
-}
-
-/* -------------------------------------------------------------------- corps */
+/* ------------------------------------------------------------- corps --- */
 
 const corps = {}
 for (const r of lire('Corps')) {
-  const arch = txt(r.archetype)
-  if (!arch) continue
-  corps[arch] = {
+  corps[tx(r.archetype)] = {
     taille: { base: nb(r.taille_base), min: nb(r.taille_min), max: nb(r.taille_max) },
     poids: { base: nb(r.poids_base), min: nb(r.poids_min), max: nb(r.poids_max) },
   }
 }
 
-/* -------------------------------------------------------------- archétypes */
+/* -------------------------------------------------------- archétypes --- */
 
 const archetypes = lire('Archetypes').map((r) => {
-  const id = txt(r.id)
-  if (!stats[id]) throw new Error(`Stats : aucune ligne pour l'archétype "${id}"`)
-  const manquants = attributs.filter((a) => !stats[id][a.id]).map((a) => a.id)
-  if (manquants.length) throw new Error(`Stats : ${id} — attributs manquants : ${manquants.join(', ')}`)
+  const id = tx(r.id)
+  const nomFeuille = tx(r.feuille) || tx(r.nom_fr) || tx(r.nom)
   return {
     id,
-    nom: txt(r.nom_fr) || txt(r.nom),
-    nomEn: txt(r.nom),
-    groupe: txt(r.groupe),
-    positions: txt(r.positions),
-    inspiration: txt(r.inspiration),
-    signature: txt(r.playstyle_signature),
-    description: txt(r.description),
-    stats: stats[id],
+    nom: tx(r.nom_fr) || tx(r.nom),
+    nomEn: tx(r.nom),
+    groupe: tx(r.groupe),
+    positions: tx(r.positions),
+    inspiration: tx(r.inspiration),
+    signature: tx(r.playstyle_signature),
+    description: tx(r.description),
+    stats: lireArchetype(nomFeuille, id),
     corps: corps[id] || null,
   }
 })
 
-/* ------------------------------------------------------- niveaux, playstyles */
+/* -------------------------------------------- niveaux et playstyles ---- */
 
 const niveaux = lire('Niveaux').map((r) => ({
   niveau: nb(r.niveau),
@@ -117,20 +163,21 @@ const niveaux = lire('Niveaux').map((r) => ({
 const playStyles = lire('PlayStyles').map((r) => {
   const exigences = []
   for (const i of [1, 2, 3]) {
-    const a = txt(r[`attribut_${i}`])
+    const a = tx(r[`attribut_${i}`])
     const s = nb(r[`seuil_${i}`])
     if (a && s) {
-      if (!idsAttr.has(a)) throw new Error(`PlayStyles "${txt(r.nom)}" : attribut inconnu "${a}"`)
+      if (!idsAttr.has(a)) throw new Error(`PlayStyle « ${tx(r.nom)} » : attribut inconnu « ${a} »`)
       exigences.push({ attribut: a, seuil: s })
     }
   }
-  return { nom: txt(r.nom), categorie: txt(r.categorie), exigences }
+  return { nom: tx(r.nom), categorie: tx(r.categorie), exigences }
 })
 
-/* ------------------------------------------------------------------ sortie */
+/* ------------------------------------------------------------ sortie --- */
 
 const data = {
   jeu: 'FC 27',
+  reglages,
   attributs,
   categories: [...new Set(attributs.map((a) => a.categorie))],
   courbes,
@@ -142,5 +189,5 @@ const data = {
 writeFileSync(CIBLE, JSON.stringify(data))
 console.log(
   `OK — ${archetypes.length} archétypes, ${attributs.length} attributs, ` +
-    `${Object.keys(courbes).length} courbes, ${playStyles.length} PlayStyles.`
+    `${courbes.length} courbes distinctes, ${playStyles.length} PlayStyles.`
 )
