@@ -604,3 +604,25 @@ h2 {
     transition: none !important;
   }
 }
+
+.ligne-plafond {
+  font-size: 11px;
+  font-weight: 400;
+  color: #5d6f80;
+  margin-left: 2px;
+}
+ 
+.corps {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+ 
+/* la barre va désormais de limite_min à limite_max, pas de 0 à 100 */
+.barre-gain {
+  z-index: 1;
+}
+ 
+.barre-base {
+  z-index: 2;
+}

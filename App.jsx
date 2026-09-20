@@ -3,48 +3,36 @@ import DATA from './data/fc27.json'
 import './styles.css'
 import ArchetypeSelector from './front/ArchetypeSelector.jsx'
 import JaugePoints from './front/molecule/JaugePoints.jsx'
-
-/* ------------------------------------------------------------------ outils */
-
-/** Coût en AP pour passer la valeur `v` à `v + 1`. null = plus d'achat possible. */
-function coutPoint(arche, attrId, v) {
-  const palier = DATA.coutsAP.find((p) => v >= p.min && v <= p.max)
-  if (!palier) return null
-  const mult = (arche.remises && arche.remises[attrId]) || 1
-  return Math.max(1, Math.round(palier.cout * mult))
-}
-
-/** Coût cumulé pour amener un attribut de `base` à `cible`. */
-function coutCumule(arche, attrId, base, cible) {
-  let total = 0
-  for (let v = base; v < cible; v++) {
-    const c = coutPoint(arche, attrId, v)
-    if (c === null) break
-    total += c
-  }
-  return total
-}
-
-function budgetNiveau(niveau) {
-  const l = DATA.niveaux.find((n) => n.niveau === niveau)
-  return l ? l.cumul : 0
-}
+import {
+  reglage,
+  coutPoint,
+  totalDepense,
+  statsInitiales,
+  budgetNiveau,
+  attributsVisibles,
+} from './lib/couts.js'
 
 /* ------------------------------------------------- encodage du lien partagé */
 
-function encodeBuild(archeId, niveau, deltas) {
-  const corps = [archeId, niveau, deltas.join('.')].join('~')
-  return btoa(unescape(encodeURIComponent(corps))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+function encodeBuild(archeId, niveau, deltas, corps) {
+  const corpsTxt = corps ? corps.taille + '.' + corps.poids : ''
+  const body = [archeId, niveau, deltas.join('.'), corpsTxt].join('~')
+  return btoa(unescape(encodeURIComponent(body)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '')
 }
 
 function decodeBuild(code) {
   try {
     const b64 = code.replace(/-/g, '+').replace(/_/g, '/')
-    const [archeId, niveau, deltas] = decodeURIComponent(escape(atob(b64))).split('~')
+    const [archeId, niveau, deltas, corpsTxt] = decodeURIComponent(escape(atob(b64))).split('~')
+    const [taille, poids] = (corpsTxt || '').split('.').map(Number)
     return {
       archeId,
       niveau: Number(niveau),
       deltas: (deltas || '').split('.').map((n) => Number(n) || 0),
+      corps: taille && poids ? { taille, poids } : null,
     }
   } catch {
     return null
@@ -53,44 +41,101 @@ function decodeBuild(code) {
 
 /* ------------------------------------------------------------- sous-blocs */
 
+function LigneAttribut({ attr, reg, valeur, cout, abordable, onChange }) {
+  const etoiles = reg.max <= 5
+  const amplitude = Math.max(1, reg.max - reg.min)
+  const pct = ((valeur - reg.min) / amplitude) * 100
+  const investi = valeur > reg.base
 
-function LigneAttribut({ attr, valeur, base, plafond, cout, remise, abordable, onChange }) {
-  const pct = Math.max(2, Math.min(100, valeur))
-  const investi = valeur > base
   return (
     <div className={'ligne' + (investi ? ' investie' : '')}>
       <button
         className="pas"
         onClick={() => onChange(-1)}
-        disabled={valeur <= base}
+        disabled={valeur <= reg.min}
         aria-label={'Baisser ' + attr.nom}
       >
         −
       </button>
+
       <div className="ligne-corps">
         <div className="ligne-tete">
           <span className="ligne-nom">
             {attr.nom}
-            {remise ? <em className="remise" title="Attribut clé de l'archétype : moins cher">clé</em> : null}
+            {reg.cle ? (
+              <em className="remise" title="Attribut clé : la courbe de prix la moins chère">
+                clé
+              </em>
+            ) : null}
           </span>
-          <span className="ligne-valeur">{valeur}</span>
+          <span className="ligne-valeur">
+            {valeur}
+            {etoiles ? '★' : null}
+            <small className="ligne-plafond">/{reg.max}</small>
+          </span>
         </div>
-        <div className="barre">
-          <div className="barre-base" style={{ width: Math.min(100, base) + '%' }} />
-          <div className="barre-gain" style={{ width: pct + '%' }} />
-          {plafond < 99 ? <div className="barre-plafond" style={{ left: Math.min(100, plafond) + '%' }} /> : null}
-        </div>
+        {etoiles ? null : (
+          <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-700">
+            <div
+              className={`h-full transition-all ${
+                valeur === reg.base
+                  ? 'bg-gray-500'
+                  : 'bg-blue-500'
+              }`}
+              style={{
+                width: `${Math.max(0, Math.min(100, valeur))}%`,
+              }}
+            />
+
+            {/* Valeur de base */}
+            <div
+              className="absolute top-1/2 h-4 w-0.5 -translate-y-1/2 bg-white"
+              style={{
+                left: `${Math.max(0, Math.min(100, reg.base))}%`,
+              }}
+            />
+
+            {/* Valeur maximale */}
+            <div
+              className="absolute top-1/2 h-4 w-0.5 -translate-y-1/2 bg-gray-400"
+              style={{
+                left: `${Math.max(0, Math.min(100, reg.max))}%`,
+              }}
+            />
+          </div>
+        )}
       </div>
+
       <button
         className={'pas plus' + (abordable ? '' : ' hors-budget')}
         onClick={() => onChange(1)}
-        disabled={valeur >= plafond || cout === null}
+        disabled={cout === null}
         aria-label={'Monter ' + attr.nom}
       >
         <span className="pas-signe">+</span>
-        <span className="pas-cout">{valeur >= plafond ? 'max' : cout}</span>
+        <span className="pas-cout">{cout === null ? 'max' : cout}</span>
       </button>
     </div>
+  )
+}
+
+function Curseur({ label, unite, valeur, min, max, onChange }) {
+  return (
+    <label className="champ">
+      <span className="champ-label">
+        {label}{' '}
+        <strong>
+          {valeur} {unite}
+        </strong>
+      </span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={valeur}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+    </label>
   )
 }
 
@@ -98,23 +143,32 @@ function LigneAttribut({ attr, valeur, base, plafond, cout, remise, abordable, o
 
 export default function App() {
   const depart = useMemo(() => {
-    const code = window.location.hash.replace(/^#\/?b\//, '')
-    const lu = window.location.hash.startsWith('#/b/') ? decodeBuild(code) : null
-    const arche = DATA.archetypes.find((a) => a.id === (lu && lu.archeId)) || DATA.archetypes[11]
-    return { arche, niveau: (lu && lu.niveau) || 40, deltas: (lu && lu.deltas) || null }
+    const lu = window.location.hash.startsWith('#/b/')
+      ? decodeBuild(window.location.hash.replace(/^#\/?b\//, ''))
+      : null
+    const arche =
+      DATA.archetypes.find((a) => a.id === (lu && lu.archeId)) || DATA.archetypes[0]
+    return { arche, niveau: (lu && lu.niveau) || 40, deltas: lu && lu.deltas, corps: lu && lu.corps }
   }, [])
 
   const [archeId, setArcheId] = useState(depart.arche.id)
   const [niveau, setNiveau] = useState(depart.niveau)
   const [stats, setStats] = useState(() => {
-    const s = { ...depart.arche.base }
+    const s = statsInitiales(depart.arche)
     if (depart.deltas) {
       DATA.attributs.forEach((a, i) => {
-        s[a.id] = (depart.arche.base[a.id] || 0) + (depart.deltas[i] || 0)
+        s[a.id] = reglage(depart.arche, a.id).base + (depart.deltas[i] || 0)
       })
     }
     return s
   })
+  const [corps, setCorps] = useState(
+    () =>
+      depart.corps || {
+        taille: depart.arche.corps ? depart.arche.corps.taille.base : 180,
+        poids: depart.arche.corps ? depart.arche.corps.poids.base : 78,
+      }
+  )
   const [copie, setCopie] = useState(false)
 
   const arche = DATA.archetypes.find((a) => a.id === archeId)
@@ -122,39 +176,27 @@ export default function App() {
   const changerArchetype = useCallback((id) => {
     const a = DATA.archetypes.find((x) => x.id === id)
     setArcheId(id)
-    setStats({ ...a.base })
+    setStats(statsInitiales(a))
+    if (a.corps) setCorps({ taille: a.corps.taille.base, poids: a.corps.poids.base })
   }, [])
-
-  const attributsVisibles = useMemo(
-    () => DATA.attributs.filter((a) => (arche.max[a.id] || 0) > (arche.base[a.id] || 0) || (arche.base[a.id] || 0) > 20),
-    [arche]
-  )
 
   const parCategorie = useMemo(() => {
     const map = new Map()
-    attributsVisibles.forEach((a) => {
+    attributsVisibles(arche).forEach((a) => {
       if (!map.has(a.categorie)) map.set(a.categorie, [])
       map.get(a.categorie).push(a)
     })
     return [...map.entries()]
-  }, [attributsVisibles])
+  }, [arche])
 
-  const depenses = useMemo(
-    () =>
-      DATA.attributs.reduce(
-        (t, a) => t + coutCumule(arche, a.id, arche.base[a.id] || 0, stats[a.id] || 0),
-        0
-      ),
-    [arche, stats]
-  )
-
+  const depenses = useMemo(() => totalDepense(arche, stats), [arche, stats])
   const budget = budgetNiveau(niveau)
   const restant = budget - depenses
 
   const lien = useMemo(() => {
-    const deltas = DATA.attributs.map((a) => (stats[a.id] || 0) - (arche.base[a.id] || 0))
-    return '#/b/' + encodeBuild(arche.id, niveau, deltas)
-  }, [arche, niveau, stats])
+    const deltas = DATA.attributs.map((a) => (stats[a.id] ?? 0) - reglage(arche, a.id).base)
+    return '#/b/' + encodeBuild(arche.id, niveau, deltas, corps)
+  }, [arche, niveau, stats, corps])
 
   useEffect(() => {
     window.history.replaceState(null, '', lien)
@@ -162,13 +204,13 @@ export default function App() {
 
   function ajuster(attrId, sens) {
     setStats((s) => {
-      const v = s[attrId] || 0
+      const r = reglage(arche, attrId)
+      const v = s[attrId] ?? r.base
       if (sens > 0) {
-        if (v >= arche.max[attrId]) return s
         if (coutPoint(arche, attrId, v) === null) return s
         return { ...s, [attrId]: v + 1 }
       }
-      if (v <= arche.base[attrId]) return s
+      if (v <= r.min) return s
       return { ...s, [attrId]: v - 1 }
     })
   }
@@ -182,7 +224,9 @@ export default function App() {
   }
 
   const moyenne = (attrs) =>
-    Math.round(attrs.reduce((t, a) => t + (stats[a.id] || 0), 0) / (attrs.length || 1))
+    Math.round(
+      attrs.reduce((t, a) => t + (stats[a.id] ?? 0), 0) / (attrs.length || 1)
+    )
 
   return (
     <div className="app">
@@ -194,13 +238,15 @@ export default function App() {
           </div>
 
           <p className="accroche">
-            Choisis un archétype, dépense tes points d'attribut, vois le prix du point suivant monter en temps réel.
+            Choisis un archétype, dépense tes points d'attribut, vois le prix du point suivant
+            monter en temps réel.
           </p>
+
           <div className="actions max-w-50 mt-5">
             <button className="bouton" onClick={copierLien}>
               {copie ? 'Lien copié' : 'Copier le lien du build'}
             </button>
-            <button className="bouton fantome" onClick={() => setStats({ ...arche.base })}>
+            <button className="bouton fantome" onClick={() => setStats(statsInitiales(arche))}>
               Tout remettre à zéro
             </button>
           </div>
@@ -208,72 +254,87 @@ export default function App() {
 
         <div className="shrink-0">
           <JaugePoints depenses={depenses} budget={budget} />
-          <label className="champ">
-            <span className="champ-label">
-              Niveau d'archétype <strong>{niveau}</strong>
-            </span>
-            <input
-              type="range"
-              min="1"
-              max="40"
-              value={niveau}
-              onChange={(e) => setNiveau(Number(e.target.value))}
-            />
-          </label>
+          <Curseur
+            label="Niveau d'archétype"
+            unite=""
+            valeur={niveau}
+            min={1}
+            max={40}
+            onChange={setNiveau}
+          />
+          {arche.corps ? (
+            <div className="corps">
+              <Curseur
+                label="Taille"
+                unite="cm"
+                valeur={corps.taille}
+                min={arche.corps.taille.min}
+                max={arche.corps.taille.max}
+                onChange={(v) => setCorps((c) => ({ ...c, taille: v }))}
+              />
+              <Curseur
+                label="Poids"
+                unite="kg"
+                valeur={corps.poids}
+                min={arche.corps.poids.min}
+                max={arche.corps.poids.max}
+                onChange={(v) => setCorps((c) => ({ ...c, poids: v }))}
+              />
+            </div>
+          ) : null}
         </div>
       </header>
+
       <hr className="my-4 border-gray-700" />
 
       <ArchetypeSelector
-            archetypes={DATA.archetypes}
-            archeId={archeId}
-            changerArchetype={changerArchetype}
+        archetypes={DATA.archetypes}
+        archeId={archeId}
+        changerArchetype={changerArchetype}
       />
 
-      <div className="">
-
-        <main className="flex flex-wrap flex-row gap-10">
-          {parCategorie.map(([cat, attrs]) => (
-            <section key={cat} className="flex-1 min-w-[260px]">
-              <div className="flex justify-between items-center">
-                <h2>{cat}</h2>
-                <span className="categorie-moy">
-                  <em>moy</em>
-                  {moyenne(attrs)}
-                </span>
-              </div>
-              <div className="lignes">
-                {attrs.map((a) => {
-                  const v = stats[a.id] || 0
-                  const cout = coutPoint(arche, a.id, v)
-                  return (
-                    <LigneAttribut
-                      key={a.id}
-                      attr={a}
-                      valeur={v}
-                      base={arche.base[a.id] || 0}
-                      plafond={arche.max[a.id] || 0}
-                      cout={cout}
-                      remise={!!(arche.remises && arche.remises[a.id])}
-                      abordable={cout !== null && cout <= restant}
-                      onChange={(sens) => ajuster(a.id, sens)}
-                    />
-                  )
-                })}
-              </div>
-            </section>
-          ))}
-        </main>
-      </div>
+      <main className="flex flex-wrap flex-row gap-10">
+        {parCategorie.map(([cat, attrs]) => (
+          <section key={cat} className="flex-1 min-w-[260px]">
+            <div className="flex justify-between items-center categorie-tete">
+              <h2>{cat}</h2>
+              <span className="categorie-moy">
+                <em>moy</em>
+                {moyenne(attrs)}
+              </span>
+            </div>
+            <div className="lignes">
+              {attrs.map((a) => {
+                const reg = reglage(arche, a.id)
+                const v = stats[a.id] ?? reg.base
+                const cout = coutPoint(arche, a.id, v)
+                return (
+                  <LigneAttribut
+                    key={a.id}
+                    attr={a}
+                    reg={reg}
+                    valeur={v}
+                    cout={cout}
+                    abordable={cout !== null && cout <= restant}
+                    onChange={(sens) => ajuster(a.id, sens)}
+                  />
+                )
+              })}
+            </div>
+          </section>
+        ))}
+      </main>
 
       <div className="ap-mobile" aria-hidden="true">
         <span className={restant < 0 ? 'negatif' : ''}>{restant}</span> AP restants
-        <span className="ap-mobile-detail">{arche.nom} · niveau {niveau}</span>
+        <span className="ap-mobile-detail">
+          {arche.nom} · niveau {niveau}
+        </span>
       </div>
 
       <footer className="pied">
-        Les valeurs affichées viennent de <code>data/fc27-data.xlsx</code> et restent à vérifier en jeu.
-        Site non affilié à EA Sports.
+        Les valeurs affichées viennent de <code>data/fc27-data.xlsx</code> et restent à vérifier en
+        jeu. Site non affilié à EA Sports.
       </footer>
     </div>
   )

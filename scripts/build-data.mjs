@@ -21,20 +21,92 @@ const lire = (nom) => {
   if (!ws) throw new Error(`Onglet manquant : ${nom}`)
   return XLSX.utils
     .sheet_to_json(ws, { range: 2, defval: null })
-    .filter((r) => Object.values(r).some((v) => v !== null && v !== ''))
+    .filter((r) => r.archetype !== null || r.id !== null || r.courbe !== null || r.niveau !== null || r.nom !== null)
 }
 
 const nb = (v) => (v === null || v === '' ? null : Number(v))
+const txt = (v) => (v === null ? '' : String(v).trim())
+const oui = (v) => /^(oui|yes|true|1|x)$/i.test(txt(v))
+
+/* ---------------------------------------------------------------- attributs */
 
 const attributs = lire('Attributs').map((r) => ({
-  id: String(r.id).trim(),
-  nom: String(r.nom).trim(),
-  categorie: String(r.categorie).trim(),
+  id: txt(r.id),
+  nom: txt(r.nom),
+  categorie: txt(r.categorie),
 }))
+const idsAttr = new Set(attributs.map((a) => a.id))
 
-const coutsAP = lire('CoutsAP')
-  .map((r) => ({ min: nb(r.valeur_min), max: nb(r.valeur_max), cout: nb(r.cout_par_point) }))
-  .sort((a, b) => a.min - b.min)
+/* ------------------------------------------------------------------ courbes */
+
+const courbes = {}
+for (const r of lire('Courbes')) {
+  const nom = txt(r.courbe)
+  if (!nom) continue
+  ;(courbes[nom] ||= []).push({ min: nb(r.valeur_min), max: nb(r.valeur_max), cout: nb(r.cout) })
+}
+for (const [nom, plages] of Object.entries(courbes)) {
+  plages.sort((a, b) => a.min - b.min)
+  for (let i = 1; i < plages.length; i++) {
+    if (plages[i].min <= plages[i - 1].max) {
+      throw new Error(`Courbes "${nom}" : les plages ${plages[i - 1].min}-${plages[i - 1].max} et ${plages[i].min}-${plages[i].max} se chevauchent`)
+    }
+  }
+}
+
+/* -------------------------------------------------------------------- stats */
+
+const stats = {}
+for (const r of lire('Stats')) {
+  const arch = txt(r.archetype)
+  const attr = txt(r.attribut)
+  if (!arch || !attr) continue
+  if (!idsAttr.has(attr)) throw new Error(`Stats : attribut inconnu "${attr}" (archétype ${arch})`)
+  const courbe = txt(r.courbe) || 'A'
+  if (!courbes[courbe]) throw new Error(`Stats : courbe inconnue "${courbe}" (${arch} / ${attr})`)
+  const base = nb(r.base) ?? 0
+  const min = nb(r.limite_min) ?? base
+  const max = nb(r.limite_max) ?? base
+  if (base < min || base > max) {
+    throw new Error(`Stats : ${arch} / ${attr} — base ${base} hors des limites ${min}-${max}`)
+  }
+  ;(stats[arch] ||= {})[attr] = { base, min, max, courbe, cle: oui(r.cle) }
+}
+
+/* -------------------------------------------------------------------- corps */
+
+const corps = {}
+for (const r of lire('Corps')) {
+  const arch = txt(r.archetype)
+  if (!arch) continue
+  corps[arch] = {
+    taille: { base: nb(r.taille_base), min: nb(r.taille_min), max: nb(r.taille_max) },
+    poids: { base: nb(r.poids_base), min: nb(r.poids_min), max: nb(r.poids_max) },
+  }
+}
+
+/* -------------------------------------------------------------- archétypes */
+
+const archetypes = lire('Archetypes').map((r) => {
+  const id = txt(r.id)
+  if (!stats[id]) throw new Error(`Stats : aucune ligne pour l'archétype "${id}"`)
+  const manquants = attributs.filter((a) => !stats[id][a.id]).map((a) => a.id)
+  if (manquants.length) throw new Error(`Stats : ${id} — attributs manquants : ${manquants.join(', ')}`)
+  return {
+    id,
+    nom: txt(r.nom_fr) || txt(r.nom),
+    nomEn: txt(r.nom),
+    groupe: txt(r.groupe),
+    positions: txt(r.positions),
+    inspiration: txt(r.inspiration),
+    signature: txt(r.playstyle_signature),
+    description: txt(r.description),
+    stats: stats[id],
+    corps: corps[id] || null,
+  }
+})
+
+/* ------------------------------------------------------- niveaux, playstyles */
 
 const niveaux = lire('Niveaux').map((r) => ({
   niveau: nb(r.niveau),
@@ -45,75 +117,30 @@ const niveaux = lire('Niveaux').map((r) => ({
 const playStyles = lire('PlayStyles').map((r) => {
   const exigences = []
   for (const i of [1, 2, 3]) {
-    const a = r[`attribut_${i}`]
+    const a = txt(r[`attribut_${i}`])
     const s = nb(r[`seuil_${i}`])
-    if (a && s) exigences.push({ attribut: String(a).trim(), seuil: s })
+    if (a && s) {
+      if (!idsAttr.has(a)) throw new Error(`PlayStyles "${txt(r.nom)}" : attribut inconnu "${a}"`)
+      exigences.push({ attribut: a, seuil: s })
+    }
   }
-  return { nom: String(r.nom).trim(), categorie: String(r.categorie || '').trim(), exigences }
+  return { nom: txt(r.nom), categorie: txt(r.categorie), exigences }
 })
 
-// remises : archetype -> attribut -> multiplicateur
-const remises = {}
-for (const r of lire('CoutsRemises')) {
-  const a = String(r.archetype).trim()
-  const m = nb(r.multiplicateur)
-  if (!m || m === 1) continue
-  ;(remises[a] ||= {})[String(r.attribut).trim()] = m
-}
-
-const parArchetype = (nomOnglet) => {
-  const out = {}
-  for (const r of lire(nomOnglet)) {
-    const id = String(r.archetype).trim()
-    out[id] = Object.fromEntries(attributs.map((a) => [a.id, nb(r[a.id]) ?? 0]))
-  }
-  return out
-}
-const base = parArchetype('StatsBase')
-const max = parArchetype('StatsMax')
-
-const archetypes = lire('Archetypes').map((r) => {
-  const id = String(r.id).trim()
-  if (!base[id]) throw new Error(`StatsBase : ligne manquante pour l'archétype "${id}"`)
-  if (!max[id]) throw new Error(`StatsMax : ligne manquante pour l'archétype "${id}"`)
-  return {
-    id,
-    nom: String(r.nom).trim(),
-    groupe: String(r.groupe).trim(),
-    positions: String(r.positions || '').trim(),
-    inspiration: String(r.inspiration || '').trim(),
-    signature: String(r.playstyle_signature || '').trim(),
-    description: String(r.description || '').trim(),
-    base: base[id],
-    max: max[id],
-    remises: remises[id] || {},
-  }
-})
-
-// contrôles de cohérence
-const idsAttr = new Set(attributs.map((a) => a.id))
-for (const ps of playStyles) {
-  for (const e of ps.exigences) {
-    if (!idsAttr.has(e.attribut)) throw new Error(`PlayStyles "${ps.nom}" : attribut inconnu "${e.attribut}"`)
-  }
-}
-for (let i = 1; i < coutsAP.length; i++) {
-  if (coutsAP[i].min <= coutsAP[i - 1].max) {
-    throw new Error(`CoutsAP : les paliers ${coutsAP[i - 1].min}-${coutsAP[i - 1].max} et ${coutsAP[i].min}-${coutsAP[i].max} se chevauchent`)
-  }
-}
+/* ------------------------------------------------------------------ sortie */
 
 const data = {
   jeu: 'FC 27',
   attributs,
   categories: [...new Set(attributs.map((a) => a.categorie))],
+  courbes,
   archetypes,
-  coutsAP,
   niveaux,
   playStyles,
 }
 
 writeFileSync(CIBLE, JSON.stringify(data))
 console.log(
-  `OK — ${archetypes.length} archétypes, ${attributs.length} attributs, ${playStyles.length} PlayStyles, ${coutsAP.length} paliers de prix.`
+  `OK — ${archetypes.length} archétypes, ${attributs.length} attributs, ` +
+    `${Object.keys(courbes).length} courbes, ${playStyles.length} PlayStyles.`
 )
