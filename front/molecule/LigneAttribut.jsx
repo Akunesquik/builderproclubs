@@ -3,9 +3,8 @@ import Etoiles from './Etoiles.jsx'
 
 export default function LigneAttribut({ attr, reg, valeur, cout, abordable, onChange }) {
   const etoiles = estEtoiles(reg)
-  const amplitude = Math.max(1, reg.max - reg.min)
-  const pct = ((valeur - reg.min) / amplitude) * 100
-  const pctBase = ((reg.base - reg.min) / amplitude) * 100
+  const pct = valeur 
+  const pctBase = reg.base
   const investi = valeur > reg.base
   const borne = (x) => Math.max(0, Math.min(100, x))
 

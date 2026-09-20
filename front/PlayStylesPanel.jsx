@@ -43,17 +43,14 @@ export default function PlayStylesPanel({ arche, stats, slots, restant, onStats,
           return (
             <button
               key={i}
-              className={'slot' + (ps ? ' rempli' : '') + (perdu ? ' perdu' : '')}
+              className={'' + (ps ? ' rempli' : '') + (perdu ? ' perdu' : '') + " flex flex-row items-center gap-2 border border-gray-500 rounded p-2 max-w-30"}
               onClick={() => setOuvert(i)}
               title={perdu ? 'Les seuils ne sont plus atteints' : undefined}
             >
               {ps ? (
                 <>
-                  <span className="slot-nom">{ps.nom}</span>
-                  <span className="slot-cat">{perdu ? 'seuils perdus' : ps.categorie}</span>
-                  <span className="slot-retirer" onClick={(e) => retirer(i, e)} role="button">
-                    ×
-                  </span>
+                  <img src={`/img/playstyles/silver/${ps.nom}.png`} alt={ps.nom} />
+                  <span className="" onClick={(e) => retirer(i, e)} role="button"> × </span>
                 </>
               ) : (
                 <>

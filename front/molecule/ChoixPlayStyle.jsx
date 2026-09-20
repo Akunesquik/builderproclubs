@@ -26,9 +26,9 @@ export default function ChoixPlayStyle({ arche, stats, restant, deja, onChoisir,
         detail: detailExigences(arche, stats, ps),
         pris: deja.includes(ps.nom),
       }))
-      .sort((a, b) => a.cout - b.cout || a.ps.nom.localeCompare(b.ps.nom))
   }, [arche, stats, deja])
 
+  const categories = [...new Set(liste.map((item) => item.ps.categorie))]
   return (
     <div
       className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/75 p-0 md:p-6"
@@ -38,7 +38,7 @@ export default function ChoixPlayStyle({ arche, stats, restant, deja, onChoisir,
       aria-label="Choisir un PlayStyle"
     >
       <div
-        className="modale flex max-h-[85vh] w-full max-w-2xl flex-col"
+        className="modale flex max-h-[85vh] w-full max-w-4xl flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-baseline justify-between gap-4 border-b border-[var(--filet)] px-5 py-4">
@@ -58,45 +58,46 @@ export default function ChoixPlayStyle({ arche, stats, restant, deja, onChoisir,
             <p className="modale-aide py-6">Aucun PlayStyle atteignable pour cet archétype.</p>
           ) : null}
 
-          {liste.map(({ ps, cout, ouvert, detail, pris }) => (
-            <button
-              key={ps.nom}
-              className={'ps-ligne' + (pris ? ' pris' : '')}
-              disabled={pris}
-              onClick={() => onChoisir(ps)}
-            >
-              <span className="ps-ligne-tete">
-                <span className="ps-ligne-nom">
-                  {ps.nom}
-                  <em className="ps-cat">{ps.categorie}</em>
-                </span>
-                <span
-                  className={
-                    'ps-prix' +
-                    (ouvert ? ' ouvert' : cout > restant ? ' hors-budget' : '')
-                  }
-                >
-                  {pris ? 'déjà pris' : ouvert ? 'déjà atteint' : `${cout} AP`}
-                </span>
-              </span>
+          {categories.map((categorie) => (
+            <div key={categorie} className='flex flex-row items-center gap-10 mb-5 w-full'>
+              <h3 className='flex items-center w-15 font-bold'>{categorie}</h3>
+              
+              <div className='flex flex-wrap gap-4 w-full'>
+               {liste
+                .filter((item) => item.ps.categorie === categorie)
+                .map(({ ps, cout, ouvert, detail, pris }) => (
+                  <button
+                    key={ps.nom}
+                    className={(pris ? ' pris border-white ' : 'opacity-50') + " border border-grey rounded " + (cout > restant && cout > 0 ? ' border-red-500  ' : '')  }
+                    disabled={pris}
+                    onClick={() => onChoisir(ps)}
+                  >
+                    <span className="flex flex-row">
+                      <span className="">
+                        <img src={`/img/playstyles/silver/${ps.nom}.png`} alt={ps.nom} />
+                      </span>
+                    </span>
 
-              <span className="ps-exigences">
-                {detail.map((d) => (
-                  <span key={d.attribut} className={'ps-exig' + (d.manque ? '' : ' ok')}>
-                    {d.nom} {d.actuel}
-                    {d.manque ? (
-                      <>
-                        {' → '}
-                        <strong>{d.seuil}</strong>
-                        <em>+{d.cout}</em>
-                      </>
-                    ) : (
-                      ' ✓'
-                    )}
-                  </span>
+                    {/*  les exigences
+                      <span className={'ps-prix' +(ouvert? ' ouvert': cout > restant? ' hors-budget': '') }>
+                        {pris ? 'déjà pris' : ouvert ? 'déjà atteint': `${cout} AP`}
+                      </span>
+                    <span className="ps-exigences">
+                      {detail.map((d) => (
+                        <span key={d.attribut} className={'ps-exig' + (d.manque ? '' : ' ok')}>
+                          {d.nom} {d.actuel}
+                          {d.manque ? (<>  {' → '}  <strong>{d.seuil}</strong>  <em>+{d.cout}</em></>) : (' ✓')}
+                        </span>
+                      ))}
+                    </span>
+                    */}
+                    
+                  </button>
                 ))}
-              </span>
-            </button>
+              <div className="h-px w-full bg-gray-700" />
+
+              </div>
+            </div>
           ))}
         </div>
       </div>
