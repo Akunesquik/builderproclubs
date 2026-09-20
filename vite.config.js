@@ -8,7 +8,5 @@ export default defineConfig({
     tailwindcss(),
   ],
 
-  base: process.env.NODE_ENV === 'production'
-    ? '/fc27-builder/'
-    : '/',
+  base: process.env.VITE_BASE || '/',
 })
