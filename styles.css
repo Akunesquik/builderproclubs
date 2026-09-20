@@ -823,3 +823,11 @@ h2 {
   font-size: 11px;
 }
  
+.barre-slidable {
+  cursor: pointer;
+  touch-action: none; /* empêche le scroll pendant le drag sur mobile */
+  user-select: none;
+}
+.barre-gain {
+  transition: none; /* important : pas de transition CSS pendant le drag, sinon ça "traîne" */
+}
