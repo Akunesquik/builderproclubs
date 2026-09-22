@@ -29,6 +29,7 @@ export default function CategorieAttributs({ categorie, attributs, arche, stats,
               restant={restant}
               onChange={(sens) => onAjuster(a.id, sens)}
               arche={arche}
+              corps={corps}
             />
           )
         })}
