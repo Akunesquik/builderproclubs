@@ -69,7 +69,7 @@ export default function ChoixPlayStyle({ arche, stats, restant, deja, onChoisir,
                   <button
                     key={ps.nom}
                     className={(pris ? ' pris border-white ' : 'opacity-50') + " border border-grey rounded " + (cout > restant && cout > 0 ? ' border-red-500  ' : '')  }
-                    disabled={pris}
+                    disabled={pris || (cout > 0 && cout > restant)}
                     onClick={() => onChoisir(ps)}
                   >
                     <span className="flex flex-row">

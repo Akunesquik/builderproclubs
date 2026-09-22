@@ -119,7 +119,7 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, onCh
       <button
         className={'pas plus' + (abordable ? '' : ' hors-budget')}
         onClick={() => onChange(1)}
-        disabled={cout === null}
+        disabled={cout === null || !abordable}
         aria-label={'Monter ' + attr.nom}
       >
         <span className="pas-signe">+</span>
