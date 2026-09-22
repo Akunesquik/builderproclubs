@@ -26,7 +26,9 @@ export default function CategorieAttributs({ categorie, attributs, arche, stats,
               valeur={v}
               cout={cout}
               abordable={cout !== null && cout <= restant}
+              restant={restant}
               onChange={(sens) => onAjuster(a.id, sens)}
+              arche={arche}
             />
           )
         })}

@@ -1,8 +1,8 @@
-import { useRef, useCallback, useState, useEffect } from 'react'
-import { estEtoiles } from '../../lib/couts.js'
+import { useRef, useCallback, useState, useEffect, useMemo } from 'react'
+import { estEtoiles, coutPoint } from '../../lib/couts.js'
 import Etoiles from './Etoiles.jsx'
 
-export default function LigneAttribut({ attr, reg, valeur, cout, abordable, onChange }) {
+export default function LigneAttribut({ attr, reg, valeur, cout, abordable, restant, onChange, arche }) {
   const etoiles = estEtoiles(reg)
   const investi = valeur > reg.base
   const borne = (x) => Math.max(0, Math.min(100, x))
@@ -20,14 +20,37 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, onCh
     if (!dragging.current) setValeurAffichee(valeur)
   }, [valeur])
 
+  const maxAbordable = useMemo(() => {
+    let v = valeur
+    while (v < reg.max) {
+      const coutSuivant = coutPoint(arche, attr.id, v)
+      if (coutSuivant === null || coutSuivant > restant) {
+        break
+      }
+      v++
+    }
+    return v
+  }, [valeur, reg.max, restant, arche, attr.id])
+
+
   const valeurDepuisPosition = useCallback((clientX) => {
     const el = barreRef.current
     if (!el) return valeurRef.current
+
     const rect = el.getBoundingClientRect()
-    const fraction = borne(((clientX - rect.left) / rect.width) * 100) / 100
-    const brute = reg.min + fraction * (reg.max - reg.min)
-    return Math.round(brute)
-  }, [reg.min, reg.max])
+
+    // 0 → 1 uniquement sur la zone BASE → MAX
+    const fraction = Math.max(
+      0,
+      Math.min(1, (clientX - rect.left) / rect.width)
+    )
+
+    // Convertit la position en valeur entre BASE et MAX
+    const brute = reg.base + fraction * (reg.max - reg.base)
+
+    // Impossible de dépasser ce que le budget permet
+    return Math.min(maxAbordable, Math.round(brute))
+  }, [reg.base, reg.max, maxAbordable])
 
   const appliquerPosition = useCallback((clientX) => {
     const cible = valeurDepuisPosition(clientX)
@@ -62,6 +85,7 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, onCh
     if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') onChange(-1)
   }, [onChange])
 
+  
   const pctBase = reg.base
 
   return (
@@ -98,20 +122,33 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, onCh
         </div>
 
         {etoiles ? null : (
-          <div
-            className="barre barre-slidable"
-            ref={barreRef}
-            role="slider"
-            tabIndex={0}
-            aria-valuemin={reg.min}
-            aria-valuemax={reg.max}
-            aria-valuenow={valeurAffichee}
-            aria-label={attr.nom}
-            onPointerDown={onPointerDown}
-            onKeyDown={onKeyDown}
-          >
-            <div className="barre-gain" style={{ width: borne(valeurAffichee) + '%' }} />
-            <div className="barre-base" style={{ width: borne(pctBase) + '%' }} />
+          <div className="barre">
+            <div
+              className="barre-gain z-1"
+              style={{ width: borne(valeurAffichee) + '%' }}
+            />
+
+            <div
+              className="barre-base"
+              style={{ width: reg.base + '%' }}
+            />
+
+            <div
+              className="barre-cliquable z-15"
+              ref={barreRef}
+              role="slider"
+              tabIndex={0}
+              aria-valuemin={reg.base}
+              aria-valuemax={reg.max}
+              aria-valuenow={valeurAffichee}
+              aria-label={attr.nom}
+              onPointerDown={onPointerDown}
+              onKeyDown={onKeyDown}
+              style={{
+                left: `${reg.base}%`,
+                width: `${100 - reg.base}%`,
+              }}
+            />
           </div>
         )}
       </div>

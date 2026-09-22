@@ -831,3 +831,14 @@ h2 {
 .barre-gain {
   transition: none; /* important : pas de transition CSS pendant le drag, sinon ça "traîne" */
 }
+
+.barre {
+  position: relative;
+}
+
+.barre-cliquable {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  cursor: pointer;
+}

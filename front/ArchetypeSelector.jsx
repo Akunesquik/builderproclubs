@@ -37,11 +37,10 @@ export default function ArchetypeSelector({
                     >
                       
                       <img
-      src={`${import.meta.env.BASE_URL}img/archetypes/${a.nom.toLowerCase()}.svg`}
-      alt={a.nom}
-      className="w-16 h-16"
-    />
-                      
+                        src={`${import.meta.env.BASE_URL}img/archetypes/${a.nom.toLowerCase()}.svg`}
+                        alt={a.nom}
+                        className="w-16 h-16"
+                      />
 
                       {a.nom}
                     </button>
