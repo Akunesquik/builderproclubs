@@ -29,11 +29,11 @@ export default function PlayStylesPanel({ arche, stats, slots, restant, onStats,
     onSlots(suivants)
   }
 
-  function choisirSpec(sp) {
-    onSpec(sp.nom)
-    onStats(appliquerSpec(arche, stats, sp))
-    setOuvertSpec(false)
-  }
+function choisirSpec(sp) {
+  onSpec(sp)
+  onStats(appliquerSpec(arche, stats, sp))
+  setOuvertSpec(false)
+}
 
   const spChoisie = spec
   const specPerdue = spChoisie && !estDebloqueeSpec(arche, stats, spChoisie)
