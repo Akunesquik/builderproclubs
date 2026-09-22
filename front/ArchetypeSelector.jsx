@@ -1,4 +1,3 @@
-import archetypeImages from '../data/archetypeImages.jsx'
 
 const GROUPES = [
   { id: 'GK', label: 'Gardien' },
@@ -29,7 +28,6 @@ export default function ArchetypeSelector({
               </div>
               <div className="mx-1 gap-1 flex mt-2">
                 {liste.map((a) => {
-                  const image = archetypeImages[a.id]
                   return (
                     
                     <button
@@ -37,13 +35,13 @@ export default function ArchetypeSelector({
                       className={`puce flex flex-col items-center ${a.id === archeId ? 'active' : ''}`}
                       onClick={() => changerArchetype(a.id)}
                     >
-                      {image && (
-                        <img
-                          src={image}
-                          alt={a.nom}
-                          className="w-16 h-16"
-                        />
-                      )}
+                      
+                      <img
+      src={`${import.meta.env.BASE_URL}img/archetypes/${a.nom.toLowerCase()}.svg`}
+      alt={a.nom}
+      className="w-16 h-16"
+    />
+                      
 
                       {a.nom}
                     </button>
