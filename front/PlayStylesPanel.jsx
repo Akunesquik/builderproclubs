@@ -49,7 +49,7 @@ export default function PlayStylesPanel({ arche, stats, slots, restant, onStats,
             >
               {ps ? (
                 <>
-                  <img src={`/img/playstyles/silver/${ps.nom}.png`} alt={ps.nom} />
+                  <img src={`${import.meta.env.BASE_URL}img/playstyles/silver/${ps.nom}.png`} alt={ps.nom} />
                   <span className="" onClick={(e) => retirer(i, e)} role="button"> × </span>
                 </>
               ) : (

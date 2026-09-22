@@ -74,7 +74,7 @@ export default function ChoixPlayStyle({ arche, stats, restant, deja, onChoisir,
                   >
                     <span className="flex flex-row">
                       <span className="">
-                        <img src={`/img/playstyles/silver/${ps.nom}.png`} alt={ps.nom} />
+                        <img src={`${import.meta.env.BASE_URL}img/playstyles/silver/${ps.nom}.png`} alt={ps.nom} />
                       </span>
                     </span>
 
