@@ -3,7 +3,7 @@ import LigneAttribut from './LigneAttribut.jsx'
 
 export default function CategorieAttributs({ categorie, attributs, arche, stats, restant, onAjuster }) {
   return (
-    <section className="flex-1 min-w-[260px]">
+    <section className={categorie === 'Physique' ? "flex-2" : "flex-1 " + "min-w-[260px]" } >
       <div className="flex justify-between items-center categorie-tete">
         <h2>{categorie}</h2>
         <span className="categorie-moy">
@@ -11,11 +11,12 @@ export default function CategorieAttributs({ categorie, attributs, arche, stats,
           {moyenne(attributs, stats)}
         </span>
       </div>
-      <div className="lignes">
+      <div className={ categorie === 'Physique' ? 'grid grid-cols-2 gap-x-4 gap-y-2' : 'lignes'} >
         {attributs.map((a) => {
           const reg = reglage(arche, a.id)
           const v = stats[a.id] ?? reg.base
           const cout = coutPoint(arche, a.id, v)
+
           return (
             <LigneAttribut
               key={a.id}
