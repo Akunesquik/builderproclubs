@@ -1,7 +1,8 @@
 import { reglage, coutPoint, moyenne } from '../../lib/couts.js'
 import LigneAttribut from './LigneAttribut.jsx'
+import Curseur from './Curseur.jsx'
 
-export default function CategorieAttributs({ categorie, attributs, arche, stats, restant, onAjuster }) {
+export default function CategorieAttributs({ categorie, attributs, arche, stats, restant, onAjuster, corps, setCorps }) {
   return (
     <section className={categorie === 'Physique' ? "flex-2" : "flex-1 " + "min-w-[260px]" } >
       <div className="flex justify-between items-center categorie-tete">
@@ -11,7 +12,7 @@ export default function CategorieAttributs({ categorie, attributs, arche, stats,
           {moyenne(attributs, stats)}
         </span>
       </div>
-      <div className={ categorie === 'Physique' ? 'grid grid-cols-2 gap-x-4 gap-y-2' : 'lignes'} >
+      <div className={ categorie === 'Physique' ? 'grid grid-cols-2 gap-x-4' : 'lignes'} >
         {attributs.map((a) => {
           const reg = reglage(arche, a.id)
           const v = stats[a.id] ?? reg.base
@@ -29,6 +30,34 @@ export default function CategorieAttributs({ categorie, attributs, arche, stats,
             />
           )
         })}
+
+        { categorie === "Défense" && (
+          arche.corps ? (
+              <div className="mt-4 flex w-full gap-2">
+                <div className='flex-1'>
+                  <Curseur
+                    label="Taille"
+                    unite="cm"
+                    valeur={corps.taille}
+                    min={arche.corps.taille.min}
+                    max={arche.corps.taille.max}
+                    onChange={(v) => setCorps((c) => ({ ...c, taille: v }))}
+                  />
+                </div>
+                <div className='flex-1'>
+                  <Curseur
+                    label="Poids"
+                    unite="kg"
+                    valeur={corps.poids}
+                    min={arche.corps.poids.min}
+                    max={arche.corps.poids.max}
+                    onChange={(v) => setCorps((c) => ({ ...c, poids: v }))}
+                  />
+                </div>
+              </div>
+            ) : null
+
+        )}
       </div>
     </section>
   )

@@ -123,30 +123,9 @@ export default function App() {
         <div className="shrink-0">
           <JaugePoints depenses={depenses} budget={budget} />
           <Curseur label="Niveau d'archétype" valeur={niveau} min={1} max={40} onChange={setNiveau} />
-          {arche.corps ? (
-            <div className="corps">
-              <Curseur
-                label="Taille"
-                unite="cm"
-                valeur={corps.taille}
-                min={arche.corps.taille.min}
-                max={arche.corps.taille.max}
-                onChange={(v) => setCorps((c) => ({ ...c, taille: v }))}
-              />
-              <Curseur
-                label="Poids"
-                unite="kg"
-                valeur={corps.poids}
-                min={arche.corps.poids.min}
-                max={arche.corps.poids.max}
-                onChange={(v) => setCorps((c) => ({ ...c, poids: v }))}
-              />
-            </div>
-          ) : null}
         </div>
       </header>
 
-      <hr className="my-4 border-gray-700" />
 
       <ArchetypeSelector
         archetypes={DATA.archetypes}
@@ -173,6 +152,8 @@ export default function App() {
             stats={stats}
             restant={restant}
             onAjuster={ajuster}
+            corps={corps}
+            setCorps={setCorps}
           />
         ))}
       </main>
