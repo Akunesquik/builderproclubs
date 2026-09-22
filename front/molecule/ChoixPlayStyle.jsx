@@ -48,7 +48,7 @@ export default function ChoixPlayStyle({ arche, stats, restant, deja, onChoisir,
               Le prix affiché correspond aux points d'attribut manquants pour atteindre les seuils.
             </p>
           </div>
-          <button className="pas" onClick={onFermer} aria-label="Fermer">
+          <button className="" onClick={onFermer} aria-label="Fermer">
             ×
           </button>
         </header>
@@ -77,20 +77,6 @@ export default function ChoixPlayStyle({ arche, stats, restant, deja, onChoisir,
                         <img src={`${import.meta.env.BASE_URL}img/playstyles/silver/${ps.nom}.png`} alt={ps.nom} />
                       </span>
                     </span>
-
-                    {/*  les exigences
-                      <span className={'ps-prix' +(ouvert? ' ouvert': cout > restant? ' hors-budget': '') }>
-                        {pris ? 'déjà pris' : ouvert ? 'déjà atteint': `${cout} AP`}
-                      </span>
-                    <span className="ps-exigences">
-                      {detail.map((d) => (
-                        <span key={d.attribut} className={'ps-exig' + (d.manque ? '' : ' ok')}>
-                          {d.nom} {d.actuel}
-                          {d.manque ? (<>  {' → '}  <strong>{d.seuil}</strong>  <em>+{d.cout}</em></>) : (' ✓')}
-                        </span>
-                      ))}
-                    </span>
-                    */}
                     
                   </button>
                 ))}

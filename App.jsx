@@ -36,12 +36,14 @@ export default function App() {
       stats: (lu && lu.stats) || statsInitiales(arche),
       corps: (lu && lu.corps) || corpsInitial(arche),
       slots: lu && lu.slots ? lu.slots.slice(0, NB_SLOTS) : slotsVides(),
+      spec: (lu && lu.spec) || arche.specialisations?.find((s) => s.nom === 'Aucune') || arche.specialisations?.[0] || null,
     }
   }, [])
 
   const [archeId, setArcheId] = useState(depart.arche.id)
   const [niveau, setNiveau] = useState(depart.niveau)
   const [stats, setStats] = useState(depart.stats)
+  const [spec, setSpec] = useState(depart.spec)
   const [corps, setCorps] = useState(depart.corps)
   const [slots, setSlots] = useState(depart.slots)
   const [copie, setCopie] = useState(false)
@@ -140,6 +142,8 @@ export default function App() {
         restant={restant}
         onStats={setStats}
         onSlots={setSlots}
+        spec={spec}
+        onSpec={setSpec}
       />
 
       <main className="flex flex-wrap flex-row gap-10 mt-10">

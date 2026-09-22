@@ -75,6 +75,37 @@ function courbeIndex(paliers) {
   return indexCourbe.get(clef)
 }
 
+/* --------------------------------------------------- spécialisations --- */
+
+const specialisationsParArchetype = new Map()
+
+for (const r of lire('Specialisations')) {
+  const archetype = tx(r.archetype)
+  const nom = tx(r.specialisation)
+  if (!archetype || !nom) continue
+
+  const exigences = []
+  for (const i of [1, 2, 3]) {
+    const a = tx(r[`attribut_${i}`])
+    const s = nb(r[`seuil_${i}`])
+    if (a && s) {
+      if (!idsAttr.has(a)) {
+        throw new Error(`Spécialisation « ${nom} » (${archetype}) : attribut inconnu « ${a} »`)
+      }
+      exigences.push({ attribut: a, seuil: s })
+    }
+  }
+
+  const spec = {
+    nom,
+    archetypeGagne: tx(r.archetype_gagne) || null, // null pour "Aucune"
+    exigences,
+  }
+
+  if (!specialisationsParArchetype.has(archetype)) specialisationsParArchetype.set(archetype, [])
+  specialisationsParArchetype.get(archetype).push(spec)
+}
+
 /* --------------------------------------------- lecture d'un archétype --- */
 
 function lireArchetype(nomFeuille, idArchetype) {
@@ -149,6 +180,7 @@ const archetypes = lire('Archetypes').map((r) => {
     description: tx(r.description),
     stats: lireArchetype(nomFeuille, id),
     corps: corps[id] || null,
+    specialisations: specialisationsParArchetype.get(id) || [],
   }
 })
 
