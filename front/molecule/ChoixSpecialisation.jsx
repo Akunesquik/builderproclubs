@@ -24,7 +24,7 @@ export default function ChoixSpecialisation({ arche, stats, restant, deja, onCho
         cout: coutSpecialisation(arche, stats, spec),
         ouvert: estDebloqueeSpec(arche, stats, spec),
         detail: detailExigencesSpec(arche, stats, spec),
-        prise: spec.nom === deja,
+        prise: spec.nom === deja?.nom,
       }))
       .sort((a, b) => a.cout - b.cout)
   }, [arche, stats, deja])

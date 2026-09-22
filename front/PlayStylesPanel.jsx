@@ -12,7 +12,6 @@ import ChoixSpecialisation from './molecule/ChoixSpecialisation.jsx'
  */
 export default function PlayStylesPanel({ arche, stats, slots, restant, onStats, onSlots, spec, onSpec }) {
   const [ouvert, setOuvert] = useState(null) // index d'emplacement en cours de choix
-  const [ouvertgold, setOuvertGold] = useState(null) // index d'emplacement gold en cours de choix
   const [ouvertSpec, setOuvertSpec] = useState(false) // emplacement de spé en cours de choix
 
   function choisir(ps) {
@@ -36,12 +35,7 @@ export default function PlayStylesPanel({ arche, stats, slots, restant, onStats,
     setOuvertSpec(false)
   }
 
-  function retirerSpec(e) {
-    e.stopPropagation()
-    onSpec(null)
-  }
-
-  const spChoisie = spec ? specParNom(arche, spec) : null
+  const spChoisie = spec
   const specPerdue = spChoisie && !estDebloqueeSpec(arche, stats, spChoisie)
 
   return (
@@ -121,7 +115,7 @@ export default function PlayStylesPanel({ arche, stats, slots, restant, onStats,
           arche={arche}
           stats={stats}
           restant={restant}
-          deja={spec}
+          deja={spChoisie}
           onChoisir={choisirSpec}
           onFermer={() => setOuvertSpec(false)}
         />

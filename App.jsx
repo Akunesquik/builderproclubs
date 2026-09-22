@@ -43,7 +43,7 @@ export default function App() {
   const [archeId, setArcheId] = useState(depart.arche.id)
   const [niveau, setNiveau] = useState(depart.niveau)
   const [stats, setStats] = useState(depart.stats)
-  const [spec, setSpec] = useState(depart.spec)
+  const [spec, setSpec] = useState(  depart.arche.specialisations?.find((s) => s.nom === 'Aucune') ||  depart.arche.specialisations?.[0] ||  null)
   const [corps, setCorps] = useState(depart.corps)
   const [slots, setSlots] = useState(depart.slots)
   const [copie, setCopie] = useState(false)
@@ -56,6 +56,8 @@ export default function App() {
     setStats(statsInitiales(a))
     setSlots(slotsVides())
     setCorps(corpsInitial(a))
+    console.log(a.specialisations)
+    setSpec(a.specialisations?.find((s) => s.nom === 'Aucune') || a.specialisations?.[0] || null)
   }, [])
 
   function reinitialiser() {
