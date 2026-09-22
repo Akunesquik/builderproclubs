@@ -43,10 +43,7 @@ export default function ChoixPlayStyle({ arche, stats, restant, deja, onChoisir,
       aria-modal="true"
       aria-label="Choisir un PlayStyle"
     >
-      <div
-        className="modale flex max-h-[85vh] w-full max-w-5xl flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="modale flex max-h-[85vh] w-full max-w-5xl flex-col"  onClick={(e) => e.stopPropagation()}>
         <header className="flex items-baseline justify-between gap-4 border-b border-[var(--filet)] px-5 py-4">
           <div>
             <h2 className="text-lg font-semibold">Ajouter un PlayStyle</h2>
@@ -74,7 +71,7 @@ export default function ChoixPlayStyle({ arche, stats, restant, deja, onChoisir,
                     .map((item) => (
                       <button
                         key={item.ps.nom}
-                        className={(item.pris ? ' pris border-white ' : 'opacity-50') + " border border-grey rounded " + (item.cout > restant && item.cout > 0 ? ' border-red-500  ' : '')  }
+                        className={(item.pris ? ' pris border-white ' : 'opacity-50') + " border border-grey rounded " + (item.cout > restant && item.cout > 0 ? ' border-red-500 !cursor-default ' : '')  }
                         onClick={() => {
                           if (item.pris || (item.cout > 0 && item.cout > restant)) {
                             return;
@@ -128,7 +125,8 @@ export default function ChoixPlayStyle({ arche, stats, restant, deja, onChoisir,
                       </p>
                     )}
                     <div className='flex justify-end min-w-full'>
-                      {hoveredPs && hoveredPs.cout > restant ? <span className="text-red-500">Manque {hoveredPs.cout - restant} AP</span> : null}
+                      {hoveredPs && hoveredPs.cout - restant > 0  ? <span className="text-red-500">Manque {hoveredPs.cout - restant} AP</span> : null}
+                      {hoveredPs && hoveredPs.cout - restant < 0 && hoveredPs.cout > 0?  `${hoveredPs.cout} AP` : null}
                     </div>
                   </div>
                 </>
