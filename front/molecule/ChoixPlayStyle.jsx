@@ -126,13 +126,13 @@ export default function ChoixPlayStyle({ arche, stats, restant, deja, onChoisir,
                     )}
                     <div className='flex justify-end min-w-full'>
                       {hoveredPs && hoveredPs.cout - restant > 0  ? <span className="text-red-500">Manque {hoveredPs.cout - restant} AP</span> : null}
-                      {hoveredPs && hoveredPs.cout - restant < 0 && hoveredPs.cout > 0?  `${hoveredPs.cout} AP` : null}
+                      {hoveredPs && hoveredPs.cout - restant <= 0 && hoveredPs.cout > 0?  `${hoveredPs.cout} AP` : null}
                     </div>
                   </div>
                 </>
                 ) : (
                   <p className="italic text-center">
-                    Surveillez un PlayStyle pour voir ses détails
+                    Survollez un PlayStyle pour voir ses détails
                   </p>
                 )}
               </div>
