@@ -56,7 +56,6 @@ export default function App() {
     setStats(statsInitiales(a))
     setSlots(slotsVides())
     setCorps(corpsInitial(a))
-    console.log(a.specialisations)
     setSpec(a.specialisations?.find((s) => s.nom === 'Aucune') || a.specialisations?.[0] || null)
   }, [])
 
