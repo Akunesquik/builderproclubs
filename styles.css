@@ -140,7 +140,6 @@ h2 {
   background: var(--surface);
   border: 1px solid var(--filet);
   border-radius: var(--rayon);
-  padding: 18px 18px 14px;
 }
 
 .jauge-chiffre {
@@ -150,7 +149,7 @@ h2 {
 }
 
 .jauge-chiffre strong {
-  font-size: 46px;
+  font-size: 40px;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.03em;

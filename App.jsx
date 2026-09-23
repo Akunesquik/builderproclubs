@@ -106,7 +106,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <header className="app-header">
+      <header className="app-header mt-2">
         <div>
           <div className="marque">
             <span className="marque-jeu">FC 27</span>
@@ -178,10 +178,10 @@ export default function App() {
         </span>
       </div>
 
-      <p className="jauge-aide pied-aide">Le chiffre sous le + est le prix du point suivant. Il monte par paliers.</p>
       <footer className="pied">
-        Les valeurs affichées viennent de <code>data/fc27-data.xlsx</code> et restent à vérifier en
-        jeu. Site non affilié à EA Sports.
+        Fait par <code>Klebar</code> et <code>Loup</code>
+        <br />
+        Site non affilié à EA Sports.
       </footer>
     </div>
   )
