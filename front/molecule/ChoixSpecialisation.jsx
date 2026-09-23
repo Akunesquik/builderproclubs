@@ -31,7 +31,7 @@ export default function ChoixSpecialisation({ arche, stats, restant, deja, onCho
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/75 p-0 md:p-6"
+      className=" fixed inset-0 z-50 flex sm:items-center justify-center bg-black/75 p-2 sm:p-6 w-full lg:max-w-full"
       onClick={onFermer}
       role="dialog"
       aria-modal="true"
@@ -65,40 +65,46 @@ export default function ChoixSpecialisation({ arche, stats, restant, deja, onCho
                 <button
                   key={spec.nom}
                   className={
-                    'flex items-center gap-4 rounded border border-grey px-3 py-2 text-left ' +
+                    'flex flex-col sm:grid sm:grid-cols-[60px_160px_1fr_80px] items-center justify-center gap-4 rounded border border-grey px-3 py-2 text-left ' +
                     (prise ? ' pris border-white ' : ' opacity-80 ') +
                     (bloque ? ' border-red-500 ' : '')
                   }
                   disabled={prise || bloque}
                   onClick={() => onChoisir(spec)}
                 >
-                  <span className="w-10 shrink-0">
                     <img
                       src={`${import.meta.env.BASE_URL}img/playstyles/gold/${spec.archetypeGagne.slice(0, -1)}.png`}
                       alt={spec.archetypeGagne}
                       title={spec.nom}
+                      className='h-20 '
+                      style={{
+                        width: 'unset',
+                        maxWidth: 'unset',
+                      }}
                     />
-                  </span>
 
-                  <span className="w-40 shrink-0 font-medium">{spec.nom}</span>
+                  <span className="w-40 shrink-0 font-medium flex justify-center">{spec.nom}</span>
 
-                  {[0, 1, 2].map((i) => {
-                    const d = detail[i]
-                    return (
-                      <span key={i} className="flex-1 text-sm">
-                        {d ? (
-                          <>
-                            <span className="block font-medium">{d.nom}</span>
-                            <span className="modale-aide">
-                              {d.actuel} → {d.seuil}
-                            </span>
-                          </>
-                        ) : null}
-                      </span>
-                    )
-                  })}
+                  <div className="grid grid-cols-2 gap-2 sm:flex sm:min-w-0">
 
-                  <span className={'w-16 shrink-0 text-right font-semibold ' + (ouvert ? 'text-green-400' : '')}>
+                    {[0, 1, 2].map((i) => {
+                      const d = detail[i]
+                      return (
+                        <span key={i} className="flex-1 text-sm">
+                          {d ? (
+                            <>
+                              <span className="block font-medium">{d.nom}</span>
+                              <span className="modale-aide">
+                                {d.actuel} → {d.seuil}
+                              </span>
+                            </>
+                          ) : null}
+                        </span>
+                      )
+                    })}
+                  </div>
+
+                  <span className={'w-16 shrink-0 text-center sm:text-right  font-semibold ' + (ouvert ? 'text-green-400' : '')}>
                     {ouvert ? 'Acquis' : cout}
                   </span>
                 </button>

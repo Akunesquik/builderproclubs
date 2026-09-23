@@ -57,7 +57,7 @@ export default function ChoixPlayStyle({
 
   return (
     <div
-      className=" fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-2 sm:p-6 w-full lg:max-w-full"
+      className=" fixed inset-0 z-50 flex sm:items-center justify-center bg-black/75 p-2 sm:p-6 w-full lg:max-w-full"
       onClick={onFermer}
       role="dialog"
       aria-modal="true"

@@ -66,7 +66,7 @@ export default function PlayStylesPanel({
     <section className="w-full">
 
       {/* Les 4 blocs ont la même largeur */}
-      <div className="flex flex-col lg:flex-row gap-4 w-full mx-auto justify-center">
+      <div className="grid grid-cols-2 md:flex md:flex-row gap-4 w-full mx-auto justify-center">
 
         {/* ==================== SPÉCIALITÉ ==================== */}
         <div className="w-full lg:flex-1 min-w-0 max-w-50">

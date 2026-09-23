@@ -12,7 +12,7 @@ export default function CategorieAttributs({ categorie, attributs, arche, stats,
           {moyenne(attributs, stats)}
         </span>
       </div>
-      <div className={ categorie === 'Physique' ? 'grid grid-cols-2 gap-x-4' : 'lignes'} >
+      <div className={ categorie === 'Physique' ? 'flex flex-col sm:grid sm:grid-cols-2 gap-x-4 min-w-70 sm:min-w-135' : 'lignes'} >
         {attributs.map((a) => {
           const reg = reglage(arche, a.id)
           const v = stats[a.id] ?? reg.base
