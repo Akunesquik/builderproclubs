@@ -192,7 +192,7 @@ export default function PlayStylesPanel({
 
           <div className="categorie-tete">
             <h2 className="installations-titre">
-              Bonus additionnels
+              Installations du club
             </h2>
           </div>
 
@@ -211,27 +211,17 @@ export default function PlayStylesPanel({
             }}
           />
 
-        </div>
-
-
-        {/* ==================== MAÎTRISES ==================== */}
-        <div className="flex-1 min-w-0 max-w-70">
-
-          <div className="categorie-tete">
-            <h2 className="maitrise-titre">
-              Maîtrises
-            </h2>
+          <div className="mt-4">
+            <button
+              className="flex flex-row items-center gap-2 border border-gray-500 rounded p-2 max-w-full"
+              onClick={() => alert('Maîtrises non implémentées encore')}
+            >
+              <span className="slot-plus">+</span>
+              <span className="slot-cat flex items-center min-h-[80px] max-w-[78px]">
+                Sélectionner les maîtrises du club
+              </span>
+            </button>
           </div>
-
-          <button
-            className="flex flex-row items-center gap-2 border border-gray-500 rounded p-2 max-w-full"
-            onClick={() => alert('Maîtrises non implémentées encore')}
-          >
-            <span className="slot-plus">+</span>
-            <span className="slot-cat flex items-center min-h-[80px] max-w-[78px]">
-              Sélectionner les maîtrises du club
-            </span>
-          </button>
 
         </div>
 
