@@ -116,7 +116,7 @@ const installationsClub = [...DATA.installationsClub].sort((a, b) =>
                           title={`Niveau ${niveau}: ${costText} coûts`}
                         >
                           {bonusLines.map((line, index) => {
-                            const match = line.match(/^(.+)\s+(\+\d+)$/);
+                            const match = line.trim().match(/^(.+)\s+(\+\d+)$/);
                             let attr = line;
                             let value = '';
                             if (match) {
@@ -129,9 +129,7 @@ const installationsClub = [...DATA.installationsClub].sort((a, b) =>
                               </div>
                             );
                           })}
-                          {isSelected && (
-                            <div className="cost-indicator">+{costText}</div>
-                          )}
+                          <div className="cost-indicator">+{costText}</div>
                         </div>
                       )
                     })}

@@ -203,7 +203,7 @@ const playStyles = lire('PlayStyles').map((r) => {
     }
   }
   return { nom: tx(r.nom), categorie: tx(r.categorie), exigences }
-})
+}
 
 const installationsClubRows = lire('InstallationsClub')
 // Known metadata columns
@@ -217,33 +217,89 @@ for (const row of installationsClubRows) {
   const niveauMatch = niveauStr.match(/\d+/)
   if (!niveauMatch) continue
   const niveau = parseInt(niveauMatch[0], 10)
-  // Find the bonus column (the one not in excludedColumns)
-  let bonusHeader = null
+
+  // Extract cost and bonus values
+  let costValue = null
   let bonusValue = null
+
+  // Look for cost column by its exact name "Cout (€)"
   for (const [key, value] of Object.entries(row)) {
-    if (!excludedColumns.has(key) && key !== '') {
-      bonusHeader = key
-      bonusValue = tx(value)
-      break // assume only one such column
+    if (key.trim() === 'Cout (€)') {
+      costValue = tx(value)
+      break
     }
   }
-  if (bonusHeader === null) continue
+
+  // If not found with exact match, try case-insensitive or with variations
+  if (costValue === null) {
+    for (const [key, value] of Object.entries(row)) {
+      if (key.toLowerCase().includes('cout') && !excludedColumns.has(key)) {
+        costValue = tx(value)
+        break
+      }
+    }
+  }
+
+  // Look for bonus column (first column that's not excluded, not installation/niveau, and not cost)
+  for (const [key, value] of Object.entries(row)) {
+    if (!excludedColumns.has(key) && key !== '' &&
+        key !== 'Responsable du matériel' &&
+        key !== 'Niveau 2' &&
+        key !== 'Cout (€)' &&
+        !key.toLowerCase().includes('cout')) {
+      bonusValue = tx(value)
+      break
+    }
+  }
+
+  // If we still didn't find a bonus column, fall back to any non-excluded column
+  if (bonusValue === null) {
+    for (const [key, value] of Object.entries(row)) {
+      if (!excludedColumns.has(key) && key !== '' &&
+          key !== 'Responsable du matériel' &&
+          key !== 'Niveau 2' &&
+          key !== 'Cout (€)') {
+        bonusValue = tx(value)
+        break
+      }
+    }
+  }
+
   // Initialize installation entry if not present
   if (!installationsMap.has(installation)) {
-    installationsMap.set(installation, { id: installation.toLowerCase().replace(/[^a-z0-9]+/g, '-'), nom: installation, niveaux: { 1: '', 2: '', 3: '' } })
+    installationsMap.set(installation, { id: installation.toLowerCase().replace(/[^a-z0-9]+/g, '-'), nom: installation, niveaux: { 1: {bonus: '', cost: 0}, 2: {bonus: '', cost: 0}, 3: {bonus: '', cost: 0} } })
   }
   const inst = installationsMap.get(installation)
   if (niveau >= 1 && niveau <= 3) {
-    inst.niveaux[niveau] = bonusValue
+    // Update both bonus and cost if we have values
+    if (bonusValue !== null) {
+      inst.niveaux[niveau].bonus = bonusValue
+    }
+    // Parse cost value more robustly (handle formats like "5 €", "10,50", etc.)
+    if (costValue !== null) {
+      // Remove currency symbols and whitespace, replace comma with period for decimal
+      const cleanedCost = costValue
+        .replace(/[^\d,-]/g, '')  // Remove everything except digits, comma, and minus
+        .replace(',', '.');       // Replace comma with period for float parsing
+
+      const costNum = parseFloat(cleanedCost)
+      if (!isNaN(costNum)) {
+        inst.niveaux[niveau].cost = costNum
+      }
+    }
   }
 }
 // Convert map to array sorted by installation name
 const installationsClub = Array.from(installationsMap.values()).sort((a, b) => a.nom.localeCompare(b.nom))
-// Transform niveaux object to array of objects with niveau and bonus
+// Transform niveaux object to array of objects with niveau, bonus, and cost
 for (const inst of installationsClub) {
   const niveauxArray = []
   for (let lvl = 1; lvl <= 3; lvl++) {
-    niveauxArray.push({ niveau: lvl, bonus: inst.niveaux[lvl] })
+    niveauxArray.push({
+      niveau: lvl,
+      bonus: inst.niveaux[lvl].bonus,
+      cost: inst.niveaux[lvl].cost
+    })
   }
   inst.niveaux = niveauxArray
 }

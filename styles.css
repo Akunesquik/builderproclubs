@@ -1273,6 +1273,7 @@ h2 {
   min-height: 40px;
   display: flex;
   flex-direction: column;
+  cursor: pointer;
 }
 
 .niveau-bonus.selected {
