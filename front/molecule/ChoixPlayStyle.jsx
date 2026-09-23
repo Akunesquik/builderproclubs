@@ -30,9 +30,6 @@ export default function ChoixPlayStyle({ arche, stats, restant, deja, onChoisir,
       }))
   }, [arche, stats, deja])
 
-  const hoveredItem = liste.find(
-    (item) => item.ps.nom === hoveredPs?.nom
-  )
 
   const categories = [...new Set(liste.map((item) => item.ps.categorie))]
   return (
@@ -69,6 +66,7 @@ export default function ChoixPlayStyle({ arche, stats, restant, deja, onChoisir,
                   {liste
                     .filter((item) => item.ps.categorie === categorie)
                     .map((item) => (
+                
                       <button
                         key={item.ps.nom}
                         className={(item.pris ? ' pris border-white ' : 'opacity-50') + " border border-grey rounded " + (item.cout > restant && item.cout > 0 ? ' border-red-500 !cursor-default ' : '')  }
@@ -77,7 +75,7 @@ export default function ChoixPlayStyle({ arche, stats, restant, deja, onChoisir,
                             return;
                           }
                           onChoisir(item.ps);
-
+                          
                         }}
                         onMouseEnter={() => setHoveredPs(item)}
                         onMouseLeave={() => setHoveredPs(null)}
