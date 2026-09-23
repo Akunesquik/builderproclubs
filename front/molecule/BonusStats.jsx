@@ -3,10 +3,9 @@ import { calculerAjustementTaillePoids } from '../../lib/taillePoids.js'
 
 export default function BonusStats({ arche, attr, corps }) {
     const ajustementAffichage = useMemo(() => {
-        const ajustement = calculerAjustementTaillePoids({ attr, corps, arche });
-
+        const ajustement = calculerAjustementTaillePoids({ attr, corps, arche });  
         return ajustement !== 0 ? (ajustement > 0 ? `+${ajustement}` : `${ajustement}`) : '';
-        
+
     }, [calculerAjustementTaillePoids, attr, corps, arche])
 
     // Retourner le span UNIQUEMENT s'il y a quelque chose à afficher
