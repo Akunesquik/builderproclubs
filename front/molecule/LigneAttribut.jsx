@@ -1,16 +1,16 @@
-import { useRef, useCallback, useState, useEffect, useMemo } from 'react'
-import { estEtoiles, coutPoint } from '../../lib/couts.js'
+import { useRef, useCallback, useState, useEffect } from 'react'
+import { estEtoiles } from '../../lib/couts.js'
 import Etoiles from './Etoiles.jsx'
 import BonusStats from './BonusStats.jsx'
 
-export default function LigneAttribut({ attr, reg, valeur, cout, abordable, restant, onChange, arche, corps }) {
+export default function LigneAttribut({ attr, reg, valeur, cout, abordable, onChange, arche, corps }) {
   const etoiles = estEtoiles(reg)
   const investi = valeur > reg.base
   const borne = (x) => Math.max(0, Math.min(100, x))
 
-  const barreRef = useRef(null)
   const dragging = useRef(false)
   const valeurRef = useRef(valeur) // toujours à jour, même dans les listeners globaux
+  const intervalRef = useRef(null) // Pour l'intervalle de répétition du clic maintenu
 
   // valeur affichée pendant le drag (optimiste, indépendante du round-trip parent)
   const [valeurAffichee, setValeurAffichee] = useState(valeur)
@@ -21,23 +21,36 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
     if (!dragging.current) setValeurAffichee(valeur)
   }, [valeur])
 
-  const maxAbordable = useMemo(() => {
-    let v = valeur
-    while (v < reg.max) {
-      const coutSuivant = coutPoint(arche, attr.id, v)
-      if (coutSuivant === null || coutSuivant > restant) {
-        break
-      }
-      v++
+  // Fonction pour démarrer l'incrémentation/décrémentation répétée
+  const startRepeatingChange = useCallback((amount) => {
+    // Appel immédiat
+    onChange(amount)
+    // Ensuite, répéter toutes les 100ms (peut être ajusté pour plus de réactivité)
+    intervalRef.current = setInterval(() => {
+      onChange(amount)
+    }, 100)
+  }, [onChange])
+
+  // Fonction pour arrêter l'incrémentation/décrémentation répétée
+  const stopRepeatingChange = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
     }
-    return v
-  }, [valeur, reg.max, restant, arche, attr.id])
+  }, [])
+
+  // Gestion du clic maintenu sur les boutons
+  const handleMouseDown = (amount) => {
+    startRepeatingChange(amount)
+  }
 
   return (
     <div className={'ligne' + (investi ? ' investie' : '')}>
       <button
         className="pas"
-        onClick={() => onChange(-1)}
+        onMouseDown={() => handleMouseDown(-1)}
+        onMouseUp={stopRepeatingChange}
+        onMouseLeave={stopRepeatingChange}
         disabled={valeur <= reg.min}
         aria-label={'Baisser ' + attr.nom}
       >
@@ -86,7 +99,9 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
 
       <button
         className={'pas plus' + (abordable ? '' : ' hors-budget')}
-        onClick={() => onChange(1)}
+        onMouseDown={() => handleMouseDown(1)}
+        onMouseUp={stopRepeatingChange}
+        onMouseLeave={stopRepeatingChange}
         disabled={cout === null || !abordable}
         aria-label={'Monter ' + attr.nom}
       >
