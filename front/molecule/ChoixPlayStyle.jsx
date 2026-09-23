@@ -10,178 +10,425 @@ import {
  * Liste des PlayStyles disponibles pour l'archétype, triée par coût croissant,
  * avec le détail des points d'attribut à payer pour chacun.
  */
-export default function ChoixPlayStyle({ arche, stats, restant, deja, onChoisir, onRetirer, onFermer }) {
+export default function ChoixPlayStyle({
+  arche,
+  stats,
+  restant,
+  deja,
+  onChoisir,
+  onRetirer,
+  onFermer,
+}) {
   useEffect(() => {
     const esc = (e) => e.key === 'Escape' && onFermer()
     window.addEventListener('keydown', esc)
+
     return () => window.removeEventListener('keydown', esc)
   }, [onFermer])
 
-  const [hoveredPs, setHoveredPs] = useState(null);
-  
+  const [hoveredPs, setHoveredPs] = useState(null)
+
   const liste = useMemo(() => {
-    return playStylesAccessibles(arche)
-      .map((ps) => ({
-        ps,
-        cout: coutPlayStyle(arche, stats, ps),
-        ouvert: estDebloque(arche, stats, ps),
-        detail: detailExigences(arche, stats, ps),
-        pris: deja.includes(ps.nom),
-      }))
+    return playStylesAccessibles(arche).map((ps) => ({
+      ps,
+      cout: coutPlayStyle(arche, stats, ps),
+      ouvert: estDebloque(arche, stats, ps),
+      detail: detailExigences(arche, stats, ps),
+      pris: deja.includes(ps.nom),
+    }))
   }, [arche, stats, deja])
 
   const classement = useMemo(
-    () => [...liste].sort((a, b) => a.cout - b.cout || a.ps.nom.localeCompare(b.ps.nom)),
+    () =>
+      [...liste].sort(
+        (a, b) =>
+          a.cout - b.cout ||
+          a.ps.nom.localeCompare(b.ps.nom)
+      ),
     [liste]
   )
 
   const moinsChers = classement.slice(0, 5)
   const plusChers = [...classement].reverse().slice(0, 5)
 
+  const categories = [
+    ...new Set(liste.map((item) => item.ps.categorie)),
+  ]
 
-  const categories = [...new Set(liste.map((item) => item.ps.categorie))]
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/75 p-0 md:p-6"
+      className=" fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-2 sm:p-6 w-full lg:max-w-full"
       onClick={onFermer}
       role="dialog"
       aria-modal="true"
       aria-label="Choisir un PlayStyle"
     >
-      <div className="modale flex max-h-[85vh] w-full max-w-6xl flex-col"  onClick={(e) => e.stopPropagation()}>
-        <header className="flex items-baseline justify-between gap-4 border-b border-[var(--filet)] px-5 py-4">
-          <div>
-            <h2 className="text-lg font-semibold">Ajouter un PlayStyle</h2>
-            <p className="modale-aide">
-              Le prix affiché correspond aux points d'attribut manquants pour atteindre les seuils.
+
+      {/* ==================== MODALE ==================== */}
+      <div
+        className=" flex w-full max-w-6xl  max-h-[90vh] flex-col overflow-hidden rounded-lg bg-gray-900 text-white" 
+        onClick={(e) => e.stopPropagation()}
+      >
+
+        {/* ==================== HEADER ==================== */}
+        <header
+          className="
+            flex
+            shrink-0
+            items-start
+            justify-between
+            gap-4
+            border-b
+            border-[var(--filet)]
+            px-4
+            py-3
+            sm:px-5
+            sm:py-4
+          "
+        >
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold sm:text-lg">
+              Ajouter un PlayStyle
+            </h2>
+
+            <p className="mt-1 text-xs text-gray-400 sm:text-sm">
+              Le prix affiché correspond aux points d'attribut
+              manquants pour atteindre les seuils.
             </p>
           </div>
-          <button className="" onClick={onFermer} aria-label="Fermer">
+
+          <button
+            className="
+              shrink-0
+              text-2xl
+              leading-none
+              text-gray-400
+              transition
+              hover:text-white
+            "
+            onClick={onFermer}
+            aria-label="Fermer"
+          >
             ×
           </button>
         </header>
-            <div className='playstyles-modal-body flex flex-row'>
-              <div className="playstyles-options overflow-y-auto px-5 py-2">
-              {liste.length === 0 ? (
-                <p className="modale-aide py-6">Aucun PlayStyle atteignable pour cet archétype.</p>
-              ) : null}
 
-              {categories.map((categorie, index) => (
-                <Fragment key={categorie}>
-                {index > 0 ? <div className="playstyle-separateur" /> : null}
-                <div className={'playstyles-categorie mb-5 w-full ' + (categorie === 'Buts' ? 'playstyles-categorie-buts' : '')}>
-                  <h3 className='flex self-stretch items-center font-bold'>{categorie}</h3>
-                  
-                  <div className='flex flex-wrap gap-4  w-full'>
-                  {liste
-                    .filter((item) => item.ps.categorie === categorie)
-                    .map((item) => (
-                
-                      <button
-                        key={item.ps.nom}
+
+        {/* ==================== CONTENU ==================== */}
+        <div
+          className="
+            flex
+            min-h-0
+            flex-1
+            flex-col
+            overflow-hidden
+            lg:flex-row
+          "
+        >
+
+          {/* ==================== PLAYSTYLES ==================== */}
+          <div
+            className="
+              min-w-0
+              flex-1
+              overflow-y-auto
+              px-3
+              py-3
+              sm:px-5
+              sm:py-4
+            "
+          >
+            {liste.length === 0 ? (
+              <p className="py-6 text-sm text-gray-400">
+                Aucun PlayStyle atteignable pour cet archétype.
+              </p>
+            ) : null}
+
+
+            {categories.map((categorie, index) => (
+              <Fragment key={categorie}>
+
+                {index > 0 ? (
+                  <div className="my-4 border-t border-gray-700" />
+                ) : null}
+
+                <div className="mb-5 w-full">
+
+                  <h3 className="mb-3 flex items-center font-bold">
+                    {categorie}
+                  </h3>
+
+                  <div className="flex w-full flex-wrap gap-2 sm:gap-4">
+
+                    {liste
+                      .filter(
+                        (item) =>
+                          item.ps.categorie === categorie
+                      )
+                      .map((item) => (
+                        <button
+                          key={item.ps.nom}
                           className={
-                            'playstyle-choice border rounded ' +
-                            (item.pris ? 'playstyle-choice-selected ' : 'playstyle-choice-available ') +
-                            (!item.ouvert ? 'playstyle-choice-locked ' : '') +
-                            (item.cout > restant && item.cout > 0 ? 'playstyle-choice-unaffordable ' : '')
+                            `
+                            flex
+                            shrink-0
+                            flex-row
+                            items-center
+                            gap-2
+                            rounded
+                            border
+                            p-2
+                            transition
+                            `
+                            +
+                            (item.pris
+                              ? ' playstyle-choice-selected'
+                              : ' playstyle-choice-available')
+                            +
+                            (!item.ouvert
+                              ? ' playstyle-choice-locked'
+                              : '')
+                            +
+                            (item.cout > restant &&
+                            item.cout > 0
+                              ? ' playstyle-choice-unaffordable'
+                              : '')
                           }
                           onClick={() => {
                             if (item.pris) {
                               onRetirer(item.ps.nom)
-                              return;
+                              return
                             }
-                            if (item.cout > 0 && item.cout > restant) {
-                              return;
-                            }
-                            onChoisir(item.ps);
 
+                            if (
+                              item.cout > 0 &&
+                              item.cout > restant
+                            ) {
+                              return
+                            }
+
+                            onChoisir(item.ps)
                           }}
-                          onMouseEnter={() => setHoveredPs(item)}
-                          onMouseLeave={() => setHoveredPs(null)}
+                          onMouseEnter={() =>
+                            setHoveredPs(item)
+                          }
+                          onMouseLeave={() =>
+                            setHoveredPs(null)
+                          }
                         >
-                          <span className="playstyle-choice-image">
-                            {!item.ouvert ? <span className="playstyle-choice-lock" aria-label="PlayStyle verrouillé">🔒</span> : null}
-                            <img src={`${import.meta.env.BASE_URL}img/playstyles/silver/${item.ps.nom}.png`} alt={item.ps.nom} className="hover:scale-105 transition-transform duration-200" />
-                            {item.cout > restant && item.cout > 0 ? <span className="playstyle-choice-cross" aria-label="AP insuffisants" /> : null}
+                          <span className="relative flex h-16 w-16 shrink-0 items-center justify-center sm:h-20 sm:w-20">
+                            {!item.ouvert ? (
+                              <span
+                                className="
+                                  absolute
+                                  z-10
+                                  text-xl
+                                  drop-shadow
+                                "
+                                aria-label="PlayStyle verrouillé"
+                              >
+                                🔒
+                              </span>
+                            ) : null}
+
+                            <img
+                              src={`${import.meta.env.BASE_URL}img/playstyles/silver/${item.ps.nom}.png`}
+                              alt={item.ps.nom}
+                              className="
+                                h-full
+                                w-full
+                                object-contain
+                                transition-transform
+                                duration-200
+                                hover:scale-105
+                              "
+                            />
+
+                            {item.cout > restant &&
+                            item.cout > 0 ? (
+                              <span
+                                className="absolute inset-0"
+                                aria-label="AP insuffisants"
+                              />
+                            ) : null}
                           </span>
-                      </button>
-                    ))}
+                        </button>
+                      ))}
 
                   </div>
                 </div>
-                </Fragment>
-              ))}
-            </div>
-            <div className='playstyles-right-column rounded mt-2 max-w-50 w-full h-auto text-sm text-white'>
-              <div className="playstyle-details border rounded border-white max-w-50 w-full flex flex-col text-sm text-white p-2">
-                {hoveredPs ? (
+              </Fragment>
+            ))}
+          </div>
+
+
+          {/* ==================== COLONNE DROITE ==================== */}
+          <div
+            className=" hidden w-50 shrink-0 flex-col gap-3 overflow-y-auto p-3 text-sm text-white lg:flex "
+          >
+
+            {/* ==================== DÉTAILS ==================== */}
+            <div
+              className=" flex w-full flex-col rounded border border-white p-2 "> 
+              {hoveredPs ? (
                 <>
-                  <div className="font-bold mb-1">
+                  <div className="mb-1 font-bold">
                     {hoveredPs.ps.nom}
                   </div>
 
-                  <div className="mt-2 text-left w-full">
+                  <div className="mt-2 w-full text-left">
+
                     {hoveredPs.detail?.length > 0 ? (
-                      hoveredPs.detail.map((detail) => (
-                        <div key={detail.attribut} className="mb-2 flex items-baseline gap-1">
-                          <span>{detail.nom} :</span>
-                          <span>{detail.actuel} ➔</span>
-                          <strong className="font-bold text-green-400">{detail.seuil}</strong>
+                      hoveredPs.detail.map((detail) => 
+                        <div
+                          key={detail.attribut}
+                          className="
+                            mb-2
+                            flex
+                            items-baseline
+                            gap-1
+                          "
+                        >
+                          <span>
+                            {detail.nom} :
+                          </span>
+
+                          <span>
+                            {detail.actuel} ➔
+                          </span>
+
+                          <strong className="font-bold text-green-400">
+                            {detail.seuil}
+                          </strong>
                         </div>
-                      ))
+                      )
                     ) : (
                       <p className="italic">
                         Aucun détail disponible
                       </p>
                     )}
-                    <div className='flex justify-end min-w-full'>
-                      {hoveredPs ? <span className="font-bold text-orange-400">Coût : {hoveredPs.cout} AP</span> : null}
-                      {hoveredPs && hoveredPs.cout - restant > 0  ? <span className="text-red-500">Manque {hoveredPs.cout - restant} AP</span> : null}
+
+                    <div className="mt-2 flex flex-col items-end gap-1">
+
+                      <span className="font-bold text-orange-400">
+                        Coût : {hoveredPs.cout} AP
+                      </span>
+
+                      {hoveredPs.cout - restant > 0 ? (
+                        <span className="text-red-500">
+                          Manque{' '}
+                          {hoveredPs.cout - restant} AP
+                        </span>
+                      ) : null}
+
                     </div>
                   </div>
                 </>
-                ) : (
-                  <p className="italic text-center">
-                    Survollez un PlayStyle pour voir ses détails
-                  </p>
-                )}
-              </div>
-              <div className="playstyles-classement modal-classement">
-                  <h3>Les 5 perks les moins chers</h3>
-                  <ol>
-                    {moinsChers.map(({ ps, cout, pris }) => (
-                      <li key={ps.nom}>
-                        <span className={'classement-nom ' + (pris ? 'classement-selectionne' : '')}>
-                          <img
-                            src={`${import.meta.env.BASE_URL}img/playstyles/silver/${ps.nom}.png`}
-                            alt=""
-                          />
-                          {ps.nom}
-                        </span>
-                        <strong>{cout} AP</strong>
-                      </li>
-                    ))}
-                  </ol>
-              </div>
-              <div className="playstyles-classement modal-classement">
-                  <h3>Les 5 perks les plus chers</h3>
-                  <ol>
-                    {plusChers.map(({ ps, cout, pris }) => (
-                      <li key={ps.nom}>
-                        <span className={'classement-nom ' + (pris ? 'classement-selectionne' : '')}>
-                          <img
-                            src={`${import.meta.env.BASE_URL}img/playstyles/silver/${ps.nom}.png`}
-                            alt=""
-                          />
-                          {ps.nom}
-                        </span>
-                        <strong>{cout} AP</strong>
-                      </li>
-                    ))}
-                  </ol>
-              </div>
+              ) : (
+                <p className="text-center italic">
+                  Survolez un PlayStyle pour voir ses détails
+                </p>
+              )}
             </div>
+
+
+            {/* ==================== MOINS CHERS ==================== */}
+            <div className="rounded border border-gray-700 p-2">
+
+              <h3 className="mb-2 font-bold">
+                Les 5 perks les moins chers
+              </h3>
+
+              <ol className="space-y-2">
+                {moinsChers.map(
+                  ({ ps, cout, pris }) => (
+                    <li
+                      key={ps.nom}
+                      className="
+                        flex
+                        items-center
+                        justify-between
+                        gap-2
+                      "
+                    >
+                      <span
+                        className={
+                          'flex min-w-0 items-center gap-1 ' +
+                          (pris
+                            ? 'text-green-400'
+                            : '')
+                        }
+                      >
+                        <img
+                          src={`${import.meta.env.BASE_URL}img/playstyles/silver/${ps.nom}.png`}
+                          alt=""
+                          className="h-8 w-8 shrink-0 object-contain"
+                        />
+
+                        <span className="truncate">
+                          {ps.nom}
+                        </span>
+                      </span>
+
+                      <strong className="shrink-0">
+                        {cout} AP
+                      </strong>
+                    </li>
+                  )
+                )}
+              </ol>
+            </div>
+
+
+            {/* ==================== PLUS CHERS ==================== */}
+            <div className="rounded border border-gray-700 p-2">
+
+              <h3 className="mb-2 font-bold">
+                Les 5 perks les plus chers
+              </h3>
+
+              <ol className="space-y-2">
+                {plusChers.map(
+                  ({ ps, cout, pris }) => (
+                    <li
+                      key={ps.nom}
+                      className="
+                        flex
+                        items-center
+                        justify-between
+                        gap-2
+                      "
+                    >
+                      <span
+                        className={
+                          'flex min-w-0 items-center gap-1 ' +
+                          (pris
+                            ? 'text-green-400'
+                            : '')
+                        }
+                      >
+                        <img
+                          src={`${import.meta.env.BASE_URL}img/playstyles/silver/${ps.nom}.png`}
+                          alt=""
+                          className="h-8 w-8 shrink-0 object-contain"
+                        />
+
+                        <span className="truncate">
+                          {ps.nom}
+                        </span>
+                      </span>
+
+                      <strong className="shrink-0">
+                        {cout} AP
+                      </strong>
+                    </li>
+                  )
+                )}
+              </ol>
+            </div>
+
           </div>
+        </div>
       </div>
     </div>
   )

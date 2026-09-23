@@ -229,15 +229,16 @@ export default function PlayStylesPanel({
 
 
       {/* ==================== POPUP PLAYSTYLE ==================== */}
+
       {ouvert !== null ? (
         <ChoixPlayStyle
-          arche={arche}
-          stats={stats}
-          restant={restant}
-          deja={slots.filter(Boolean)}
-          onChoisir={choisir}
-          onRetirer={retirerDepuisLaPopup}
-          onFermer={() => setOuvert(null)}
+        arche={arche}
+        stats={stats}
+        restant={restant}
+        deja={slots.filter(Boolean)}
+        onChoisir={choisir}
+        onRetirer={retirerDepuisLaPopup}
+        onFermer={() => setOuvert(null)}
         />
       ) : null}
 
