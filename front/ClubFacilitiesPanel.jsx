@@ -55,30 +55,30 @@ const installationsClub = [...DATA.installationsClub].sort((a, b) =>
 
   return (
     <>
-      <button className="club-facilities" type="button" onClick={() => setOuvert(true)}>
+      <button type="button" onClick={() => setOuvert(true)} className="flex items-center gap-2.5 w-full h-[54px] box-border mt-3 p-3 bg-surface border border-filet rounded text-texte text-sm text-left hover:border-filet-fort hover:bg-surface-haute">
         <img
-          className="club-facilities-image"
-          src={`${import.meta.env.BASE_URL}img/installations-club/image-removebg-preview%20%283%29.png`}
+          className="w-[43px] h-[43px] flex-none object-contain"
+          src={`${import.meta.env.BASE_URL}img/installations-club/InstallClub.png`}
           alt=""
         />
-        <span className="club-facilities-label">Sélectionner les installations du club</span>
+        <span className="line-clamp-2 font-bold leading-[1.25] block w-full">Installations du club</span>
       </button>
 
       {ouvert ? (
-        <div className="club-facilities-overlay" onClick={() => setOuvert(false)} role="presentation">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/75" onClick={() => setOuvert(false)} role="presentation">
           <div
-            className="club-facilities-modal"
+            className="relative w-[600px] max-w-full p-4.5 bg-surface border border-filet-fort rounded"
             role="dialog"
             aria-modal="true"
-            aria-label="Sélectionner les installations du club"
+            aria-label="Installations du club"
             onClick={(event) => event.stopPropagation()}
           >
-            <header className="club-facilities-entete">
-              <h2>Installations du club</h2>
-              <div className="total-cost">
-                Coût total: <strong>{totalCost.toLocaleString()} </strong>
+            <header className="flex items-center justify-between gap-4 pb-3 border-b border-filet">
+              <h2 className="text-xl font-semibold">Installations du club</h2>
+              <div className="total-cost flex items-center gap-2">
+                Coût total: <strong className="whitespace-nolength">{totalCost.toLocaleString()} </strong>
               </div>
-              <button type="button" onClick={() => setOuvert(false)} aria-label="Fermer">×</button>
+              <button type="button" onClick={() => setOuvert(false)} aria-label="Fermer" className="text-3xl">×</button>
             </header>
             <div className="club-facilities-liste">
               {/* Table header */}
