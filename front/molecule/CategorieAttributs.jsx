@@ -7,7 +7,7 @@ export default function CategorieAttributs({ categorie, attributs, arche, stats,
     <section className={categorie === 'Physique' ? "flex-2" : "flex-1 " + "min-w-[260px]" } >
       <div className="flex justify-between items-center categorie-tete">
         <h2>{categorie}</h2>
-        <span className="categorie-moy">
+        <span className={'categorie-moy ' + (categorie === 'Autres' ? 'invisible' : '')} aria-hidden={categorie === 'Autres'}>
           <em>moy</em>
           {moyenne(attributs, stats)}
         </span>

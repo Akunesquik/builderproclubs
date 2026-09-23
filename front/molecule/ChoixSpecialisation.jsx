@@ -80,6 +80,8 @@ export default function ChoixSpecialisation({ arche, stats, restant, deja, onCho
                     />
                   </span>
 
+                  <span className="w-40 shrink-0 font-medium">{spec.nom}</span>
+
                   {[0, 1, 2].map((i) => {
                     const d = detail[i]
                     return (

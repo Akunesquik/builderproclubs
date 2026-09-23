@@ -91,8 +91,16 @@ h2 {
 
 .accroche {
   margin: 10px 0 0;
-  max-width: 62ch;
+  max-width: none;
+  white-space: nowrap;
   color: var(--attenue);
+}
+
+.app-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
 }
 
 /* -------------------------------------------------------------- grille */
@@ -300,8 +308,22 @@ h2 {
 /* ------------------------------------------------------------- actions */
 
 .actions {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
+  align-self: flex-start;
+}
+
+@media (max-width: 760px) {
+  .app-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
 }
 
 .bouton {
@@ -539,7 +561,7 @@ h2 {
 /* ---------------------------------------------------------------- pied */
 
 .pied {
-  margin-top: 48px;
+  margin-top: 12px;
   padding-top: 18px;
   border-top: 1px solid var(--filet);
   font-size: 12px;
@@ -841,4 +863,365 @@ h2 {
   top: 0;
   height: 100%;
   cursor: pointer;
+}
+
+.playstyles-layout {
+  display: grid;
+  grid-template-columns: 200px max-content 300px 220px;
+  gap: 24px;
+  align-items: start;
+}
+
+.playstyles-ligne {
+  display: flex;
+}
+
+.playstyles-modal-body {
+  min-width: 0;
+}
+
+.playstyles-options {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.playstyles-right-column {
+  flex: 0 0 320px;
+  width: 320px;
+}
+
+.playstyles-categorie-buts > div {
+  flex-wrap: nowrap;
+}
+
+.playstyles-categorie {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 40px;
+}
+
+.playstyles-categorie > div {
+  min-width: 0;
+}
+
+.specialite-col > .categorie-tete,
+.playstyles-col > .categorie-tete,
+.club-facilities-col > .categorie-tete {
+  height: 40px;
+}
+
+.specialite-ligne {
+  display: flex;
+  padding-top: 12px;
+}
+
+.club-facilities {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 80px;
+  box-sizing: border-box;
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--filet);
+  border-radius: var(--rayon);
+  color: var(--texte);
+  font-size: 13px;
+  text-align: left;
+}
+
+.club-facilities-image {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+  object-fit: contain;
+}
+
+.club-facilities-label {
+  display: -webkit-box;
+  overflow: hidden;
+  font-weight: 700;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.25;
+}
+
+.playstyles-col {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.playstyles-summary {
+  min-width: 0;
+}
+
+.playstyles-summary .jauge {
+  margin-top: 0;
+}
+
+.club-facilities:hover {
+  border-color: var(--filet-fort);
+  background: var(--surface-haute);
+}
+
+.installations-titre {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.club-facilities-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgb(0 0 0 / 75%);
+}
+
+.club-facilities-modal {
+  width: min(100%, 440px);
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--filet-fort);
+  border-radius: var(--rayon);
+}
+
+.club-facilities-entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--filet);
+}
+
+.club-facilities-entete h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.club-facilities-entete button {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.club-facilities-liste {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.club-facility {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--attenue);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.club-facility input {
+  accent-color: var(--ambre);
+}
+
+.playstyle-choice {
+  position: relative;
+  display: flex;
+  flex: 0 0 80px;
+  width: 80px;
+  height: 80px;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-width: 1px;
+  border-color: var(--filet-fort);
+  background: transparent;
+}
+
+.playstyle-choice-available {
+  opacity: 0.72;
+}
+
+.playstyle-choice-available:not(.playstyle-choice-locked):not(.playstyle-choice-unaffordable) {
+  opacity: 1;
+}
+
+.playstyle-choice-selected {
+  border-width: 3px;
+  border-color: #65d98b;
+  opacity: 1;
+}
+
+.playstyle-choice-unaffordable {
+  border-color: var(--alerte);
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.playstyle-choice-image {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.playstyle-choice-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.playstyle-separateur {
+  width: 100%;
+  height: 1px;
+  margin: 12px 0;
+  background: var(--filet-fort);
+}
+
+.playstyle-choice-lock {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  z-index: 2;
+  transform: translateX(-50%);
+  font-size: 16px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px #000);
+}
+
+.playstyle-choice-cross {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.playstyle-choice-cross::before,
+.playstyle-choice-cross::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 115%;
+  height: 3px;
+  content: '';
+  background: var(--alerte);
+  box-shadow: 0 1px 2px #000;
+}
+
+.playstyle-choice-cross::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.playstyle-choice-cross::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.playstyles-classement {
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--filet);
+  border-radius: var(--rayon);
+}
+
+.playstyles-right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.playstyles-classement h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.playstyles-classement ol {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 0;
+  list-style-position: inside;
+  color: var(--attenue);
+  font-size: 12px;
+}
+
+.playstyles-classement li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.playstyles-classement strong {
+  color: var(--ambre);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.classement-selectionne {
+  color: #65d98b;
+  font-weight: 700;
+}
+
+.classement-nom {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.classement-nom img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex: 0 0 18px;
+}
+
+.playstyle-details {
+  flex: 0 0 170px;
+  height: 170px;
+  min-height: 170px;
+  overflow-y: auto;
+}
+
+.modal-classement {
+  margin-top: 0;
+}
+
+@media (max-width: 760px) {
+  .playstyles-modal-body {
+    flex-direction: column;
+  }
+
+  .playstyles-right-column {
+    flex-basis: auto;
+    width: 100%;
+  }
+
+  .playstyles-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .club-facilities {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .club-facilities-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .club-facilities-modal {
+    width: 100%;
+  }
+}
+
+.pied-aide {
+  margin: 48px 0 0;
 }

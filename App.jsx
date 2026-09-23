@@ -3,8 +3,6 @@ import DATA from './data/fc27.json'
 import './styles.css'
 
 import ArchetypeSelector from './front/ArchetypeSelector.jsx'
-import JaugePoints from './front/molecule/JaugePoints.jsx'
-import Curseur from './front/molecule/Curseur.jsx'
 import CategorieAttributs from './front/molecule/CategorieAttributs.jsx'
 import PlayStylesPanel from './front/PlayStylesPanel.jsx'
 
@@ -17,6 +15,7 @@ import {
   attributsParCategorie,
 } from './lib/couts.js'
 import { NB_SLOTS } from './lib/playstyles.js'
+import { INSTALLATIONS } from './lib/installations.js'
 import { encodeBuild, decodeBuild } from './lib/partage.js'
 
 const slotsVides = () => Array(NB_SLOTS).fill(null)
@@ -36,6 +35,9 @@ export default function App() {
       stats: (lu && lu.stats) || statsInitiales(arche),
       corps: (lu && lu.corps) || corpsInitial(arche),
       slots: lu && lu.slots ? lu.slots.slice(0, NB_SLOTS) : slotsVides(),
+      installations: lu && lu.installations
+        ? lu.installations.filter((id) => INSTALLATIONS.some((installation) => installation.id === id))
+        : [],
       spec: (lu && lu.spec) || arche.specialisations?.find((s) => s.nom === 'Aucune') || arche.specialisations?.[0] || null,
     }
   }, [])
@@ -46,6 +48,7 @@ export default function App() {
   const [spec, setSpec] = useState(  depart.arche.specialisations?.find((s) => s.nom === 'Aucune') ||  depart.arche.specialisations?.[0] ||  null)
   const [corps, setCorps] = useState(depart.corps)
   const [slots, setSlots] = useState(depart.slots)
+  const [installations, setInstallations] = useState(depart.installations)
   const [copie, setCopie] = useState(false)
 
   const arche = DATA.archetypes.find((a) => a.id === archeId)
@@ -55,6 +58,7 @@ export default function App() {
     setArcheId(id)
     setStats(statsInitiales(a))
     setSlots(slotsVides())
+    setInstallations([])
     setCorps(corpsInitial(a))
     setSpec(a.specialisations?.find((s) => s.nom === 'Aucune') || a.specialisations?.[0] || null)
   }, [])
@@ -62,6 +66,7 @@ export default function App() {
   function reinitialiser() {
     setStats(statsInitiales(arche))
     setSlots(slotsVides())
+    setInstallations([])
   }
 
   const parCategorie = useMemo(() => attributsParCategorie(arche), [arche])
@@ -70,8 +75,8 @@ export default function App() {
   const restant = budget - depenses
 
   const lien = useMemo(
-    () => encodeBuild({ arche, niveau, stats, corps, slots }),
-    [arche, niveau, stats, corps, slots]
+    () => encodeBuild({ arche, niveau, stats, corps, slots, installations }),
+    [arche, niveau, stats, corps, slots, installations]
   )
 
   useEffect(() => {
@@ -101,7 +106,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <header className="app-header">
         <div>
           <div className="marque">
             <span className="marque-jeu">FC 27</span>
@@ -113,20 +118,17 @@ export default function App() {
             monter en temps réel.
           </p>
 
-          <div className="actions max-w-50 mt-5">
-            <button className="bouton" onClick={copierLien}>
-              {copie ? 'Lien copié' : 'Copier le lien du build'}
-            </button>
-            <button className="bouton fantome" onClick={reinitialiser}>
-              Tout remettre à zéro
-            </button>
-          </div>
         </div>
 
-        <div className="shrink-0">
-          <JaugePoints depenses={depenses} budget={budget} />
-          <Curseur label="Niveau d'archétype" valeur={niveau} min={1} max={40} onChange={setNiveau} />
+        <div className="actions">
+          <button className="bouton" onClick={copierLien}>
+            {copie ? 'Lien copié' : 'Copier le lien du build'}
+          </button>
+          <button className="bouton fantome" onClick={reinitialiser}>
+            Tout remettre à zéro
+          </button>
         </div>
+
       </header>
 
 
@@ -145,6 +147,12 @@ export default function App() {
         onSlots={setSlots}
         spec={spec}
         onSpec={setSpec}
+        installations={installations}
+        onInstallations={setInstallations}
+        depenses={depenses}
+        budget={budget}
+        niveau={niveau}
+        onNiveau={setNiveau}
       />
 
       <main className="flex flex-wrap flex-row gap-10 mt-10">
@@ -170,6 +178,7 @@ export default function App() {
         </span>
       </div>
 
+      <p className="jauge-aide pied-aide">Le chiffre sous le + est le prix du point suivant. Il monte par paliers.</p>
       <footer className="pied">
         Les valeurs affichées viennent de <code>data/fc27-data.xlsx</code> et restent à vérifier en
         jeu. Site non affilié à EA Sports.
