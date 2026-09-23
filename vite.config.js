@@ -9,4 +9,10 @@ export default defineConfig({
   ],
 
   base: process.env.VITE_BASE || '/',
+  server: {
+    watch: {
+      usePolling: true,
+      interval: 300,
+    },
+  },
 })

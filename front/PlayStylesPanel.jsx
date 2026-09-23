@@ -3,6 +3,9 @@ import { NB_SLOTS, appliquer, parNom, coutPlayStyle, estDebloque } from '../lib/
 import { appliquerSpec, specParNom, estDebloqueeSpec } from '../lib/specialisations.js'
 import ChoixPlayStyle from './molecule/ChoixPlayStyle.jsx'
 import ChoixSpecialisation from './molecule/ChoixSpecialisation.jsx'
+import ClubFacilitiesPanel from './ClubFacilitiesPanel.jsx'
+import JaugePoints from './molecule/JaugePoints.jsx'
+import Curseur from './molecule/Curseur.jsx'
 
 /**
  * Les emplacements de PlayStyles du build, plus l'emplacement de spécialisation.
@@ -10,7 +13,7 @@ import ChoixSpecialisation from './molecule/ChoixSpecialisation.jsx'
  * à leur seuil ; le retirer libère l'emplacement mais ne rend pas les AP (à toi de
  * rebaisser les stats).
  */
-export default function PlayStylesPanel({ arche, stats, slots, restant, onStats, onSlots, spec, onSpec }) {
+export default function PlayStylesPanel({ arche, stats, slots, restant, onStats, onSlots, spec, onSpec, installations, onInstallations, depenses, budget, niveau, onNiveau }) {
   const [ouvert, setOuvert] = useState(null) // index d'emplacement en cours de choix
   const [ouvertSpec, setOuvertSpec] = useState(false) // emplacement de spé en cours de choix
 
@@ -29,6 +32,11 @@ export default function PlayStylesPanel({ arche, stats, slots, restant, onStats,
     onSlots(suivants)
   }
 
+  function retirerDepuisLaPopup(nom) {
+    onSlots(slots.map((slot) => (slot === nom ? null : slot)))
+    setOuvert(null)
+  }
+
 function choisirSpec(sp) {
   onSpec(sp)
   onStats(appliquerSpec(arche, stats, sp))
@@ -40,36 +48,44 @@ function choisirSpec(sp) {
 
   return (
     <section className="w-full">
-      <div className="flex justify-between items-center categorie-tete">
-        <h2>PlayStyles</h2>
-        <span className="categorie-moy">
-          <em>équipés</em>
-          {slots.filter(Boolean).length}/{NB_SLOTS}
-        </span>
-      </div>
+      <div className="playstyles-layout">
+        <div className="specialite-col">
+          <div className="categorie-tete">
+            <h2>Spécialité</h2>
+          </div>
 
-      
+          <div className="specialite-ligne">
+            <button
+              className={'' + (spChoisie ? ' rempli' : '') + (specPerdue ? ' perdu' : '') + " flex flex-row items-center gap-2 border border-gray-500 rounded p-2 max-w-60"}
+              onClick={() => setOuvertSpec(true)}
+              title={specPerdue ? 'Les seuils ne sont plus atteints' : undefined}
+            >
+              {spChoisie ? (
+                <>
+                  <img src={`${import.meta.env.BASE_URL}img/playstyles/gold/${spChoisie.archetypeGagne.slice(0,-1)}.png`} alt={spChoisie.archetypeGagne} />
+                  <span className="pr-2 text-left text-sm font-bold">{spChoisie.nom}</span>
+                </>
+              ) : (
+                <>
+                  <span className="slot-plus">+</span>
+                  <span className="slot-cat">spécialisation</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
 
-      <div className="flex flex-wrap gap-3 pt-3">
-        {/* Gold */}
-        <button
-          className={'' + (spChoisie ? ' rempli' : '') + (specPerdue ? ' perdu' : '') + " flex flex-row items-center gap-2 border border-gray-500 rounded p-2 max-w-30"}
-          onClick={() => setOuvertSpec(true)}
-          title={specPerdue ? 'Les seuils ne sont plus atteints' : undefined}
-        >
-          {spChoisie ? (
-            <>
-              <img src={`${import.meta.env.BASE_URL}img/playstyles/gold/${spChoisie.archetypeGagne.slice(0,-1)}.png`} alt={spChoisie.archetypeGagne} />
-            </>
-          ) : (
-            <>
-              <span className="slot-plus">+</span>
-              <span className="slot-cat">spécialisation</span>
-            </>
-          )}
-        </button>
+        <div className="playstyles-col">
+          <div className="flex justify-between items-center categorie-tete">
+            <h2>PlayStyles</h2>
+            <span className="categorie-moy">
+              <em>équipés</em>
+              {slots.filter(Boolean).length}/{NB_SLOTS}
+            </span>
+          </div>
 
-        {/* Silver */}
+          <div className="playstyles-ligne">
+            <div className="flex flex-wrap gap-3 pt-3">
         {Array.from({ length: NB_SLOTS }, (_, i) => {
           const nom = slots[i]
           const ps = nom ? parNom(nom) : null
@@ -97,6 +113,34 @@ function choisirSpec(sp) {
         })}
 
         
+            </div>
+          </div>
+        </div>
+
+        <div className="club-facilities-col">
+          <div className="categorie-tete">
+            <h2 className="installations-titre">Installations club</h2>
+          </div>
+          {/* Convert installations from array of IDs to object mapping ID to niveau (0 = not selected) */}
+          <ClubFacilitiesPanel
+            selections={Object.fromEntries(
+              (installations || []).map(id => [id, 1]) // Default to niveau 1 for backward compatibility
+            )}
+            onChange={(newSelections) => {
+              // Convert from object mapping ID to niveau to array of selected IDs (niveau > 0)
+              const selectedInstallations = Object.entries(newSelections || {})
+                .filter(([_, niveau]) => niveau > 0)
+                .map(([id]) => id);
+              onInstallations(selectedInstallations);
+            }}
+          />
+        </div>
+
+        <div className="playstyles-summary">
+          <JaugePoints depenses={depenses} budget={budget} />
+          <Curseur label="Niveau d'archétype" valeur={niveau} min={1} max={40} onChange={onNiveau} />
+        </div>
+
       </div>
 
       {ouvert !== null ? (
@@ -106,6 +150,7 @@ function choisirSpec(sp) {
           restant={restant}
           deja={slots.filter(Boolean)}
           onChoisir={choisir}
+          onRetirer={retirerDepuisLaPopup}
           onFermer={() => setOuvert(null)}
         />
       ) : null}

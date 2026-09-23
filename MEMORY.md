@@ -1,0 +1,1 @@
+- [Installations Club Panel - Table View with Selectable Cells](memories/installations-club-panel-table-view.md) — Shows installations as rows, niveaux as columns, bonuses in cells, with clickable cellules for selection and total cost display

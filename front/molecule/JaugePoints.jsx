@@ -14,7 +14,6 @@ export default function JaugePoints({ depenses, budget }) {
         <span>{depenses} dépensés</span>
         <span>{budget} au total</span>
       </div>
-      <p className="jauge-aide">Le chiffre sous le + est le prix du point suivant. Il monte par paliers.</p>
     </div>
   )
 }

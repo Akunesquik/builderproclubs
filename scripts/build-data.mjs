@@ -3,9 +3,9 @@
  *
  *   npm run data
  *
- * Une feuille par archétype : lignes = attributs, colonnes = paliers de valeur.
- * Les listes de paliers identiques sont dédupliquées dans data.courbes pour
- * garder le JSON léger ; chaque attribut ne stocke que l'index de sa courbe.
+ *   Une feuille par archétype : lignes = attributs, colonnes = paliers de valeur.
+ *   Les listes de paliers identiques sont dédupliquées dans data.courbes pour
+ *   garder le JSON léger ; chaque attribut ne stocke que l'index de sa courbe.
  */
 import * as XLSX from 'xlsx'
 import { writeFileSync, readFileSync } from 'node:fs'
@@ -205,6 +205,109 @@ const playStyles = lire('PlayStyles').map((r) => {
   return { nom: tx(r.nom), categorie: tx(r.categorie), exigences }
 })
 
+const installationsClubRows = lire('InstallationsClub')
+
+const installationsMap = new Map()
+
+for (const row of installationsClubRows) {
+  const installation = tx(row['Installation'])
+  const niveauStr = tx(row['Niveau'])
+  const bonusValue = tx(row['Bonus d\'attributs'])
+  const styleJeu = tx(row['Style de jeu'])
+
+  // Ignore les lignes invalides
+  if (!installation || !niveauStr) continue
+
+  // Récupération du numéro de niveau
+  const niveauMatch = niveauStr.match(/\d+/)
+
+  if (!niveauMatch) continue
+
+  const niveau = parseInt(niveauMatch[0], 10)
+
+  // On accepte uniquement les niveaux 1 à 3
+  if (niveau < 1 || niveau > 3) continue
+
+  // Récupération du coût
+  const costValue = row['Cout (€)']
+
+  let cost = 0
+
+  if (costValue !== null && costValue !== undefined && costValue !== '') {
+    if (typeof costValue === 'number') {
+      cost = costValue
+    } else {
+      const cleanedCost = String(costValue)
+        .replace(/[^\d,.-]/g, '')
+        .replace(',', '.')
+
+      const parsedCost = parseFloat(cleanedCost)
+
+      if (!isNaN(parsedCost)) {
+        cost = parsedCost
+      }
+    }
+  }
+
+  // Création de l'installation
+  if (!installationsMap.has(installation)) {
+    installationsMap.set(installation, {
+      id: installation
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, ''),
+
+      nom: installation,
+
+      niveaux: {
+        1: {
+          bonus: '',
+          cost: 0,
+          styleJeu: ''
+        },
+        2: {
+          bonus: '',
+          cost: 0,
+          styleJeu: ''
+        },
+        3: {
+          bonus: '',
+          cost: 0,
+          styleJeu: ''
+        }
+      }
+    })
+  }
+
+  const inst = installationsMap.get(installation)
+
+  // Enregistrement des données du niveau
+  inst.niveaux[niveau] = {
+    bonus: bonusValue,
+    cost,
+    styleJeu: styleJeu === '-' ? '' : styleJeu
+  }
+}
+
+// Conversion en tableau + tri alphabétique
+const installationsClub = Array.from(
+  installationsMap.values()
+).sort((a, b) => a.nom.localeCompare(b.nom))
+
+// Transformation des niveaux en tableau
+for (const inst of installationsClub) {
+  inst.niveaux = [1, 2, 3].map((niveau) => ({
+    niveau,
+    bonus: inst.niveaux[niveau].bonus,
+    cost: inst.niveaux[niveau].cost,
+    styleJeu: inst.niveaux[niveau].styleJeu
+  }))
+}
+
+console.log('Installations Club:', installationsClub)
+
 /* ------------------------------------------------------------ sortie --- */
 
 const data = {
@@ -216,10 +319,8 @@ const data = {
   archetypes,
   niveaux,
   playStyles,
+  installationsClub,
 }
 
 writeFileSync(CIBLE, JSON.stringify(data))
-console.log(
-  `OK — ${archetypes.length} archétypes, ${attributs.length} attributs, ` +
-    `${courbes.length} courbes distinctes, ${playStyles.length} PlayStyles.`
-)
+console.log('Build complete');
