@@ -3,9 +3,9 @@
  *
  *   npm run data
  *
- * Une feuille par archétype : lignes = attributs, colonnes = paliers de valeur.
- * Les listes de paliers identiques sont dédupliquées dans data.courbes pour
- * garder le JSON léger ; chaque attribut ne stocke que l'index de sa courbe.
+ *   Une feuille par archétype : lignes = attributs, colonnes = paliers de valeur.
+ *   Les listes de paliers identiques sont dédupliquées dans data.courbes pour
+ *   garder le JSON léger ; chaque attribut ne stocke que l'index de sa courbe.
  */
 import * as XLSX from 'xlsx'
 import { writeFileSync, readFileSync } from 'node:fs'
@@ -205,6 +205,50 @@ const playStyles = lire('PlayStyles').map((r) => {
   return { nom: tx(r.nom), categorie: tx(r.categorie), exigences }
 })
 
+const installationsClubRows = lire('InstallationsClub')
+// Known metadata columns
+const excludedColumns = new Set(['600000', 'Responsable du matériel', 'Niveau 2', '-'])
+const installationsMap = new Map()
+for (const row of installationsClubRows) {
+  const installation = tx(row['Responsable du matériel'])
+  // Skip header rows where installation equals the column header
+  if (!installation || installation === 'Responsable du matériel') continue
+  const niveauStr = tx(row['Niveau 2'])
+  const niveauMatch = niveauStr.match(/\d+/)
+  if (!niveauMatch) continue
+  const niveau = parseInt(niveauMatch[0], 10)
+  // Find the bonus column (the one not in excludedColumns)
+  let bonusHeader = null
+  let bonusValue = null
+  for (const [key, value] of Object.entries(row)) {
+    if (!excludedColumns.has(key) && key !== '') {
+      bonusHeader = key
+      bonusValue = tx(value)
+      break // assume only one such column
+    }
+  }
+  if (bonusHeader === null) continue
+  // Initialize installation entry if not present
+  if (!installationsMap.has(installation)) {
+    installationsMap.set(installation, { id: installation.toLowerCase().replace(/[^a-z0-9]+/g, '-'), nom: installation, niveaux: { 1: '', 2: '', 3: '' } })
+  }
+  const inst = installationsMap.get(installation)
+  if (niveau >= 1 && niveau <= 3) {
+    inst.niveaux[niveau] = bonusValue
+  }
+}
+// Convert map to array sorted by installation name
+const installationsClub = Array.from(installationsMap.values()).sort((a, b) => a.nom.localeCompare(b.nom))
+// Transform niveaux object to array of objects with niveau and bonus
+for (const inst of installationsClub) {
+  const niveauxArray = []
+  for (let lvl = 1; lvl <= 3; lvl++) {
+    niveauxArray.push({ niveau: lvl, bonus: inst.niveaux[lvl] })
+  }
+  inst.niveaux = niveauxArray
+}
+const maitrise = lire('Maitrise')
+
 /* ------------------------------------------------------------ sortie --- */
 
 const data = {
@@ -216,10 +260,9 @@ const data = {
   archetypes,
   niveaux,
   playStyles,
+  installationsClub,
+  maitrise,
 }
 
 writeFileSync(CIBLE, JSON.stringify(data))
-console.log(
-  `OK — ${archetypes.length} archétypes, ${attributs.length} attributs, ` +
-    `${courbes.length} courbes distinctes, ${playStyles.length} PlayStyles.`
-)
+console.log('Build complete');

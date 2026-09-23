@@ -121,7 +121,19 @@ function choisirSpec(sp) {
           <div className="categorie-tete">
             <h2 className="installations-titre">Installations club</h2>
           </div>
-          <ClubFacilitiesPanel selection={installations} onChange={onInstallations} />
+          {/* Convert installations from array of IDs to object mapping ID to niveau (0 = not selected) */}
+          <ClubFacilitiesPanel
+            selections={Object.fromEntries(
+              (installations || []).map(id => [id, 1]) // Default to niveau 1 for backward compatibility
+            )}
+            onChange={(newSelections) => {
+              // Convert from object mapping ID to niveau to array of selected IDs (niveau > 0)
+              const selectedInstallations = Object.entries(newSelections || {})
+                .filter(([_, niveau]) => niveau > 0)
+                .map(([id]) => id);
+              onInstallations(selectedInstallations);
+            }}
+          />
         </div>
 
         <div className="playstyles-summary">
