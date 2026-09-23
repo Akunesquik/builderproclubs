@@ -66,10 +66,10 @@ export default function PlayStylesPanel({
     <section className="w-full">
 
       {/* Les 4 blocs ont la même largeur */}
-      <div className=" flex flex-row gap-4 w-full mx-auto justify-center">
+      <div className="flex flex-col lg:flex-row gap-4 w-full mx-auto justify-center">
 
         {/* ==================== SPÉCIALITÉ ==================== */}
-        <div className="flex-1 min-w-0 max-w-50">
+        <div className="w-full lg:flex-1 min-w-0 max-w-50">
 
           <div className="categorie-tete">
             <h2>Spécialité</h2>
@@ -94,7 +94,7 @@ export default function PlayStylesPanel({
                   <img
                     src={`${import.meta.env.BASE_URL}img/playstyles/gold/${spChoisie.archetypeGagne.slice(0, -1)}.png`}
                     alt={spChoisie.archetypeGagne}
-                    className='h-20'
+                    className="h-20"
                   />
 
                   <span className="pr-2 text-left text-sm font-bold">
@@ -116,7 +116,7 @@ export default function PlayStylesPanel({
 
 
         {/* ==================== PLAYSTYLES ==================== */}
-        <div className="flex-1 min-w-0 ">
+        <div className="w-full lg:flex-1 min-w-0">
 
           <div className="flex justify-between items-center categorie-tete">
             <h2>PlayStyles</h2>
@@ -127,68 +127,66 @@ export default function PlayStylesPanel({
             </span>
           </div>
 
-          <div>
-            <div className="flex flex-wrap gap-3 pt-3">
+          <div className="flex flex-wrap gap-3 pt-3">
 
-              {Array.from({ length: NB_SLOTS }, (_, i) => {
-                const nom = slots[i]
-                const ps = nom ? parNom(nom) : null
-                const perdu =
-                  ps && !estDebloque(arche, stats, ps)
+            {Array.from({ length: NB_SLOTS }, (_, i) => {
+              const nom = slots[i]
+              const ps = nom ? parNom(nom) : null
+              const perdu =
+                ps && !estDebloque(arche, stats, ps)
 
-                return (
-                  <button
-                    key={i}
-                    className={
-                      (ps ? ' rempli' : '') +
-                      (perdu ? ' perdu' : '') +
-                      ' flex flex-row items-center gap-2 border border-gray-500 rounded p-2 max-w-full'
-                    }
-                    onClick={() => setOuvert(i)}
-                    title={
-                      perdu
-                        ? 'Les seuils ne sont plus atteints'
-                        : undefined
-                    }
-                  >
-                    {ps ? (
-                      <>
-                        <img
-                          src={`${import.meta.env.BASE_URL}img/playstyles/silver/${ps.nom}.png`}
-                          alt={ps.nom}
-                          className='h-20'
-                        />
+              return (
+                <button
+                  key={i}
+                  className={
+                    (ps ? ' rempli' : '') +
+                    (perdu ? ' perdu' : '') +
+                    ' flex flex-row items-center gap-2 border border-gray-500 rounded p-2 max-w-full'
+                  }
+                  onClick={() => setOuvert(i)}
+                  title={
+                    perdu
+                      ? 'Les seuils ne sont plus atteints'
+                      : undefined
+                  }
+                >
+                  {ps ? (
+                    <>
+                      <img
+                        src={`${import.meta.env.BASE_URL}img/playstyles/silver/${ps.nom}.png`}
+                        alt={ps.nom}
+                        className="h-20"
+                      />
 
-                        <span
-                          onClick={(e) => retirer(i, e)}
-                          role="button"
-                        >
-                          ×
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="slot-plus">
-                          +
-                        </span>
+                      <span
+                        onClick={(e) => retirer(i, e)}
+                        role="button"
+                      >
+                        ×
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="slot-plus">
+                        +
+                      </span>
 
-                        <span className="slot-cat flex items-center min-h-[80px] max-w-[78px]">
-                          emplacement libre
-                        </span>
-                      </>
-                    )}
-                  </button>
-                )
-              })}
+                      <span className="slot-cat flex items-center min-h-[80px] max-w-[78px]">
+                        emplacement libre
+                      </span>
+                    </>
+                  )}
+                </button>
+              )
+            })}
 
-            </div>
           </div>
 
         </div>
 
 
         {/* ==================== INSTALLATIONS ==================== */}
-        <div className="flex-1 min-w-0 max-w-70">
+        <div className="w-full lg:flex-1 min-w-0 max-w-70">
 
           <div className="categorie-tete">
             <h2 className="installations-titre">
@@ -201,7 +199,6 @@ export default function PlayStylesPanel({
               (installations || []).map((id) => [id, 1])
             )}
             onChange={(newSelections) => {
-
               const selectedInstallations =
                 Object.entries(newSelections || {})
                   .filter(([_, niveau]) => niveau > 0)
@@ -215,7 +212,7 @@ export default function PlayStylesPanel({
 
 
         {/* ==================== RÉSUMÉ ==================== */}
-        <div className="flex-1 min-w-0 max-w-80">
+        <div className="w-full lg:flex-1 min-w-0 max-w-80">
 
           <div className="playstyles-summary">
             <JaugePoints
