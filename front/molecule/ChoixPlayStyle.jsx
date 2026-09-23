@@ -115,29 +115,10 @@ export default function ChoixPlayStyle({
 
 
         {/* ==================== CONTENU ==================== */}
-        <div
-          className="
-            flex
-            min-h-0
-            flex-1
-            flex-col
-            overflow-hidden
-            lg:flex-row
-          "
-        >
+        <div className=" flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row " >
 
           {/* ==================== PLAYSTYLES ==================== */}
-          <div
-            className="
-              min-w-0
-              flex-1
-              overflow-y-auto
-              px-3
-              py-3
-              sm:px-5
-              sm:py-4
-            "
-          >
+          <div  className=" min-w-0 flex-1 overflow-y-auto px-3 py-3 sm:px-5 sm:py-4">
             {liste.length === 0 ? (
               <p className="py-6 text-sm text-gray-400">
                 Aucun PlayStyle atteignable pour cet archétype.
@@ -152,7 +133,7 @@ export default function ChoixPlayStyle({
                   <div className="my-4 border-t border-gray-700" />
                 ) : null}
 
-                <div className="mb-5 w-full">
+                <div className="mb-2 w-full">
 
                   <h3 className="mb-3 flex items-center font-bold">
                     {categorie}
@@ -169,26 +150,7 @@ export default function ChoixPlayStyle({
                         <button
                           key={item.ps.nom}
                           className={
-                            `
-                            flex
-                            shrink-0
-                            flex-row
-                            items-center
-                            gap-2
-                            rounded
-                            border
-                            p-2
-                            transition
-                            `
-                            +
-                            (item.pris
-                              ? ' playstyle-choice-selected'
-                              : ' playstyle-choice-available')
-                            +
-                            (!item.ouvert
-                              ? ' playstyle-choice-locked'
-                              : '')
-                            +
+                            ` flex shrink-0 flex-row items-center gap-2 rounded border p-2 transition ` + (item.pris   ? ' playstyle-choice-selected'   : ' playstyle-choice-available') + (!item.ouvert   ? ' playstyle-choice-locked'   : '') +
                             (item.cout > restant &&
                             item.cout > 0
                               ? ' playstyle-choice-unaffordable'
@@ -216,7 +178,7 @@ export default function ChoixPlayStyle({
                             setHoveredPs(null)
                           }
                         >
-                          <span className="relative flex h-16 w-16 shrink-0 items-center justify-center sm:h-20 sm:w-20">
+                          <span className="relative flex  shrink-0 items-center justify-center">
                             {!item.ouvert ? (
                               <span
                                 className="
@@ -234,22 +196,13 @@ export default function ChoixPlayStyle({
                             <img
                               src={`${import.meta.env.BASE_URL}img/playstyles/silver/${item.ps.nom}.png`}
                               alt={item.ps.nom}
-                              className="
-                                h-full
-                                w-full
-                                object-contain
-                                transition-transform
-                                duration-200
-                                hover:scale-105
-                              "
+                              className=" h-15 object-contain transition-transform duration-200 hover:scale-105 "
+
                             />
 
                             {item.cout > restant &&
                             item.cout > 0 ? (
-                              <span
-                                className="absolute inset-0"
-                                aria-label="AP insuffisants"
-                              />
+                              <span  className="absolute inset-0"  aria-label="AP insuffisants"/>
                             ) : null}
                           </span>
                         </button>
@@ -264,12 +217,12 @@ export default function ChoixPlayStyle({
 
           {/* ==================== COLONNE DROITE ==================== */}
           <div
-            className=" hidden w-50 shrink-0 flex-col gap-3 overflow-y-auto p-3 text-sm text-white lg:flex "
+            className=" hidden w-60 shrink-0 flex-col gap-3 overflow-y-auto p-3 text-sm text-white lg:flex "
           >
 
             {/* ==================== DÉTAILS ==================== */}
             <div
-              className=" flex w-full flex-col rounded border border-white p-2 "> 
+              className=" flex w-full flex-col rounded border border-white p-2 h-40"> 
               {hoveredPs ? (
                 <>
                   <div className="mb-1 font-bold">
@@ -325,7 +278,7 @@ export default function ChoixPlayStyle({
                   </div>
                 </>
               ) : (
-                <p className="text-center italic">
+                <p className="text-center italic h-40 flex items-center">
                   Survolez un PlayStyle pour voir ses détails
                 </p>
               )}
