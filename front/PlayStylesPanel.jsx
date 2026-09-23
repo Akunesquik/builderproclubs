@@ -4,6 +4,7 @@ import { appliquerSpec, specParNom, estDebloqueeSpec } from '../lib/specialisati
 import ChoixPlayStyle from './molecule/ChoixPlayStyle.jsx'
 import ChoixSpecialisation from './molecule/ChoixSpecialisation.jsx'
 import ClubFacilitiesPanel from './ClubFacilitiesPanel.jsx'
+import MaitrisesPanel from './MaitrisesPanel.jsx'
 import JaugePoints from './molecule/JaugePoints.jsx'
 
 /**
@@ -211,15 +212,23 @@ export default function PlayStylesPanel({
             }}
           />
 
+          {/* ==================== MAITRISES ==================== */}
           <div className="mt-[10px]">
-            <button className="club-facilities" type="button" onClick={() => alert('Maîtrises non implémentées encore')}>
-              <img
-                className="club-facilities-image"
-                src={`${import.meta.env.BASE_URL}img/installations-club/Maitrise.png`}
-                alt=""
-              />
-              <span className="club-facilities-label">Maîtrises</span>
-            </button>
+            <MaitrisesPanel
+              selections={Object.fromEntries(
+                (installations || []).map((id) => [id, 1])
+              )}
+              onChange={(newSelections) => {
+                const selectedArchetypes =
+                  Object.entries(newSelections || {})
+                    .filter(([_, niveau]) => niveau > 0)
+                    .map(([id]) => id)
+
+                // For now, we'll just update installations state as a placeholder
+                // In a real implementation, you might want a separate state for archetypes
+                onInstallations(selectedArchetypes)
+              }}
+            />
           </div>
 
         </div>
