@@ -89,7 +89,7 @@ export default function MaitrisesPanel({ selections, onChange }) {
       {ouvert ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/90" onClick={() => setOuvert(false)} role="presentation">
           <div
-            className="relative w-[800px] max-w-full p-4.5 bg-surface border border-filet-fort rounded"
+            className="relative w-[800px] max-w-full p-4.5 border border-filet-fort rounded modale"
             role="dialog"
             aria-modal="true"
             aria-label="Maîtrises"
