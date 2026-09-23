@@ -55,19 +55,19 @@ const installationsClub = [...DATA.installationsClub].sort((a, b) =>
 
   return (
     <>
-      <button type="button" onClick={() => setOuvert(true)} className="flex items-center gap-2.5 w-full h-[54px] box-border mt-3 p-3 bg-surface border border-filet rounded text-texte text-sm text-left hover:border-filet-fort hover:bg-surface-haute">
+      <button type="button" onClick={() => setOuvert(true)} className="club-facilities">
         <img
-          className="w-[43px] h-[43px] flex-none object-contain"
+          className="club-facilities-image"
           src={`${import.meta.env.BASE_URL}img/installations-club/InstallClub.png`}
           alt=""
         />
-        <span className="line-clamp-2 font-bold leading-[1.25] block w-full">Installations du club</span>
+        <span className="club-facilities-label">Installations du club</span>
       </button>
 
       {ouvert ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/75" onClick={() => setOuvert(false)} role="presentation">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/90" onClick={() => setOuvert(false)} role="presentation">
           <div
-            className="relative w-[600px] max-w-full p-4.5 bg-surface border border-filet-fort rounded"
+            className="relative w-[800px] max-w-full p-4.5 bg-surface border border-filet-fort rounded"
             role="dialog"
             aria-modal="true"
             aria-label="Installations du club"
