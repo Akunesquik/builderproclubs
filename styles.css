@@ -214,7 +214,6 @@ h2 {
 
 .champ-label strong {
   color: var(--texte);
-  font-weight: 600;
 }
 
 .champ input[type='range'] {

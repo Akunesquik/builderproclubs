@@ -1,6 +1,6 @@
 export default function Curseur({ label, unite = '', valeur, min, max, onChange }) {
   return (
-    <label className="champ">
+    <label className="champ mt-4">
       <span className="champ-label">
         {label}{' '}
         <strong>
@@ -14,6 +14,7 @@ export default function Curseur({ label, unite = '', valeur, min, max, onChange 
         max={max}
         value={valeur}
         onChange={(e) => onChange(Number(e.target.value))}
+        className="!font-bold"
       />
     </label>
   )

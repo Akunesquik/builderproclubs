@@ -155,7 +155,7 @@ export default function App() {
         onNiveau={setNiveau}
       />
 
-      <main className="flex flex-wrap flex-row gap-10 mt-10">
+      <main className="flex flex-wrap flex-row gap-10 mt-5">
         {parCategorie.map(([cat, attrs]) => (
           <CategorieAttributs
             key={cat}

@@ -83,16 +83,8 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, onCh
 
         {etoiles ? null : (
           <div className="barre">
-            <div
-              className="barre-gain z-1"
-              style={{ width: borne(valeurAffichee) + '%' }}
-            />
-
-            <div
-              className="barre-base"
-              style={{ width: reg.base + '%' }}
-            />
-
+            <div  className="barre-gain z-1"  style={{ width: borne(valeurAffichee) + '%' }}/>
+            <div  className="barre-base"  style={{ width: reg.base + '%' }}/>
           </div>
         )}
       </div>

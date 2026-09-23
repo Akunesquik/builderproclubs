@@ -5,7 +5,6 @@ import ChoixPlayStyle from './molecule/ChoixPlayStyle.jsx'
 import ChoixSpecialisation from './molecule/ChoixSpecialisation.jsx'
 import ClubFacilitiesPanel from './ClubFacilitiesPanel.jsx'
 import JaugePoints from './molecule/JaugePoints.jsx'
-import Curseur from './molecule/Curseur.jsx'
 
 /**
  * Les emplacements de PlayStyles du build, plus l'emplacement de spécialisation.
@@ -70,7 +69,7 @@ export default function PlayStylesPanel({
       <div className=" flex flex-row gap-4 w-full mx-auto justify-center">
 
         {/* ==================== SPÉCIALITÉ ==================== */}
-        <div className="flex-1 min-w-0 max-w-40">
+        <div className="flex-1 min-w-0 max-w-50">
 
           <div className="categorie-tete">
             <h2>Spécialité</h2>
@@ -95,6 +94,7 @@ export default function PlayStylesPanel({
                   <img
                     src={`${import.meta.env.BASE_URL}img/playstyles/gold/${spChoisie.archetypeGagne.slice(0, -1)}.png`}
                     alt={spChoisie.archetypeGagne}
+                    className='h-20'
                   />
 
                   <span className="pr-2 text-left text-sm font-bold">
@@ -156,6 +156,7 @@ export default function PlayStylesPanel({
                         <img
                           src={`${import.meta.env.BASE_URL}img/playstyles/silver/${ps.nom}.png`}
                           alt={ps.nom}
+                          className='h-20'
                         />
 
                         <span
@@ -171,7 +172,7 @@ export default function PlayStylesPanel({
                           +
                         </span>
 
-                        <span className="slot-cat flex items-center min-h-[70px] max-w-[70px]">
+                        <span className="slot-cat flex items-center min-h-[80px] max-w-[78px]">
                           emplacement libre
                         </span>
                       </>
@@ -220,14 +221,8 @@ export default function PlayStylesPanel({
             <JaugePoints
               depenses={depenses}
               budget={budget}
-            />
-
-            <Curseur
-              label="Niveau d'archétype"
-              valeur={niveau}
-              min={1}
-              max={40}
-              onChange={onNiveau}
+              niveau={niveau}
+              onNiveau={onNiveau}
             />
           </div>
 
