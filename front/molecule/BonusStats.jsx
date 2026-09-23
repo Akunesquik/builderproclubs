@@ -4,7 +4,7 @@
   export default function BonusStats({ arche, attr, corps }) {
       const ajustementAffichage = useMemo(() => {
           const ajustement = calculerAjustementTaillePoids({ attr, corps, arche });
-          const statsConcernées = ['Accélération', 'Agilité', 'Équilibre', 'Détente', 'Vitesse de sprint', 'Force'];
+          const statsConcernées = ['Accélération', 'Agilité', 'Équilibre', 'Détente', 'Vitesse', 'Force'];
 
           if (statsConcernées.includes(attr.nom)) {
               return ajustement !== 0 ? (ajustement > 0 ? `+${ajustement}` : `${ajustement}`) : '';
