@@ -257,6 +257,7 @@ export default function PlayStylesPanel({
         onChoisir={choisir}
         onRetirer={retirerDepuisLaPopup}
         onFermer={() => setOuvert(null)}
+        spec={spec}
         />
       ) : null}
 
