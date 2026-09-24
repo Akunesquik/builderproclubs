@@ -39,27 +39,32 @@ export default function MaitrisesPanel({ selections, onChange }) {
   const niveauxToShow = [10, 30]
 
   function toggleNiveau(archetypeId, niveau) {
+    onChange((prev) => {
+      const nouveau = { ...(prev || {}) }
 
-    const currentNiveau =
-      selections?.[archetypeId] || 0
+      const niveauxActuels = nouveau[archetypeId] || []
 
-    // Si on clique sur le niveau déjà sélectionné,
-    // on le désélectionne
-    if (currentNiveau === niveau) {
-      onChange((prev) => {
-        const nouveau = { ...(prev || {}) }
-        delete nouveau[archetypeId]
-        return nouveau
-      })
+      if (niveauxActuels.includes(niveau)) {
+        // Retire le niveau
+        const nouveauxNiveaux = niveauxActuels.filter(
+          (n) => n !== niveau
+        )
 
-      return
-    }
+        if (nouveauxNiveaux.length === 0) {
+          delete nouveau[archetypeId]
+        } else {
+          nouveau[archetypeId] = nouveauxNiveaux
+        }
+      } else {
+        // Ajoute le niveau
+        nouveau[archetypeId] = [
+          ...niveauxActuels,
+          niveau,
+        ].sort((a, b) => a - b)
+      }
 
-    // Sinon on sélectionne le nouveau niveau
-    onChange((prev) => ({
-      ...(prev || {}),
-      [archetypeId]: niveau,
-    }))
+      return nouveau
+    })
   }
 
   return (
@@ -149,17 +154,10 @@ export default function MaitrisesPanel({ selections, onChange }) {
 
                   {/* Niveaux */}
                   {niveauxToShow.map((niveau) => {
-                    const selectedNiveau =
-                      selections?.[archetype.id] || 0
-
-                    const isSelected =
-                      selectedNiveau === niveau
-
-                    const maitrise =
-                      DATA.maitrise?.[archetype.id] || {}
-
-                    const bonus =
-                      maitrise[String(niveau)] || []
+                    const niveauxSelectionnes = selections?.[archetype.id] || []
+                    const isSelected = niveauxSelectionnes.includes(niveau)
+                    const maitrise = DATA.maitrise?.[archetype.id] || {}
+                    const bonus = maitrise[String(niveau)] || []
 
                     return (
                       <div

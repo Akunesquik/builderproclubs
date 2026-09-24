@@ -88,16 +88,18 @@ export default function App() {
   useEffect(() => {
     const nouveauxBonus = {}
 
-    Object.entries(maitrises).forEach(([archetypeId, niveau]) => {
+    Object.entries(maitrises).forEach(([archetypeId, niveaux]) => {
       const maitrise = DATA.maitrise?.[archetypeId]
 
       if (!maitrise) return
 
-      const bonus = maitrise[String(niveau)] || []
+      niveaux.forEach((niveau) => {
+        const bonus = maitrise[String(niveau)] || []
 
-      bonus.forEach(({ attribut, gain }) => {
-        nouveauxBonus[attribut] =
-          (nouveauxBonus[attribut] || 0) + gain
+        bonus.forEach(({ attribut, gain }) => {
+          nouveauxBonus[attribut] =
+            (nouveauxBonus[attribut] || 0) + gain
+        })
       })
     })
 
