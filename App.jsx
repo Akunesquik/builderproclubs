@@ -50,6 +50,8 @@ export default function App() {
   const [slots, setSlots] = useState(depart.slots)
   const [installations, setInstallations] = useState(depart.installations)
   const [copie, setCopie] = useState(false)
+  const [bonusStats, setBonusStats] = useState({})
+  const [maitrises, setMaitrises] = useState({})
 
   const arche = DATA.archetypes.find((a) => a.id === archeId)
 
@@ -82,6 +84,25 @@ export default function App() {
   useEffect(() => {
     window.history.replaceState(null, '', lien)
   }, [lien])
+
+  useEffect(() => {
+    const nouveauxBonus = {}
+
+    Object.entries(maitrises).forEach(([archetypeId, niveau]) => {
+      const maitrise = DATA.maitrise?.[archetypeId]
+
+      if (!maitrise) return
+
+      const bonus = maitrise[String(niveau)] || []
+
+      bonus.forEach(({ attribut, gain }) => {
+        nouveauxBonus[attribut] =
+          (nouveauxBonus[attribut] || 0) + gain
+      })
+    })
+
+    setBonusStats(nouveauxBonus)
+  }, [maitrises])
 
   function ajuster(attrId, sens) {
     setStats((s) => {
@@ -153,6 +174,8 @@ export default function App() {
         budget={budget}
         niveau={niveau}
         onNiveau={setNiveau}
+        maitrises={maitrises}
+        setMaitrises={setMaitrises}
       />
 
       <main className="flex flex-wrap flex-row gap-10 mt-5">
@@ -167,6 +190,8 @@ export default function App() {
             onAjuster={ajuster}
             corps={corps}
             setCorps={setCorps}
+            bonusStats={bonusStats}
+            setBonusStats={setBonusStats}
           />
         ))}
       </main>

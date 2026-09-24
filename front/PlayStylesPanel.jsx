@@ -1,17 +1,21 @@
 import { useState } from 'react'
-import { NB_SLOTS, appliquer, parNom, coutPlayStyle, estDebloque } from '../lib/playstyles.js'
-import { appliquerSpec, specParNom, estDebloqueeSpec } from '../lib/specialisations.js'
+import {
+  NB_SLOTS,
+  appliquer,
+  parNom,
+  estDebloque,
+} from '../lib/playstyles.js'
+import {
+  appliquerSpec,
+  estDebloqueeSpec,
+} from '../lib/specialisations.js'
+
 import ChoixPlayStyle from './molecule/ChoixPlayStyle.jsx'
 import ChoixSpecialisation from './molecule/ChoixSpecialisation.jsx'
 import ClubFacilitiesPanel from './ClubFacilitiesPanel.jsx'
+import MaitrisesPanel from './MaitrisesPanel.jsx'
 import JaugePoints from './molecule/JaugePoints.jsx'
 
-/**
- * Les emplacements de PlayStyles du build, plus l'emplacement de spécialisation.
- * Choisir un PlayStyle/une spécialisation monte automatiquement les attributs requis
- * à leur seuil ; le retirer libère l'emplacement mais ne rend pas les AP
- * (à toi de rebaisser les stats).
- */
 export default function PlayStylesPanel({
   arche,
   stats,
@@ -26,7 +30,9 @@ export default function PlayStylesPanel({
   depenses,
   budget,
   niveau,
-  onNiveau
+  onNiveau,
+  maitrises,
+  setMaitrises,
 }) {
   const [ouvert, setOuvert] = useState(null)
   const [ouvertSpec, setOuvertSpec] = useState(false)
@@ -34,6 +40,7 @@ export default function PlayStylesPanel({
   function choisir(ps) {
     const suivants = [...slots]
     suivants[ouvert] = ps.nom
+
     onSlots(suivants)
     onStats(appliquer(arche, stats, ps))
     setOuvert(null)
@@ -44,11 +51,17 @@ export default function PlayStylesPanel({
 
     const suivants = [...slots]
     suivants[i] = null
+
     onSlots(suivants)
   }
 
   function retirerDepuisLaPopup(nom) {
-    onSlots(slots.map((slot) => (slot === nom ? null : slot)))
+    onSlots(
+      slots.map((slot) =>
+        slot === nom ? null : slot
+      )
+    )
+
     setOuvert(null)
   }
 
@@ -59,8 +72,10 @@ export default function PlayStylesPanel({
   }
 
   const spChoisie = spec
+
   const specPerdue =
-    spChoisie && !estDebloqueeSpec(arche, stats, spChoisie)
+    spChoisie &&
+    !estDebloqueeSpec(arche, stats, spChoisie)
 
   return (
     <section className="w-full">
@@ -77,6 +92,7 @@ export default function PlayStylesPanel({
 
           <div className="specialite-ligne">
             <button
+              type="button"
               className={
                 (spChoisie ? ' rempli' : '') +
                 (specPerdue ? ' perdu' : '') +
@@ -103,7 +119,10 @@ export default function PlayStylesPanel({
                 </>
               ) : (
                 <>
-                  <span className="slot-plus">+</span>
+                  <span className="slot-plus">
+                    +
+                  </span>
+
                   <span className="slot-cat">
                     spécialisation
                   </span>
@@ -123,7 +142,9 @@ export default function PlayStylesPanel({
 
             <span className="categorie-moy">
               <em>équipés</em>
-              <h2>{slots.filter(Boolean).length}/{NB_SLOTS}</h2>
+              <h2>
+                {slots.filter(Boolean).length}/{NB_SLOTS}
+              </h2>
             </span>
           </div>
 
@@ -190,23 +211,37 @@ export default function PlayStylesPanel({
 
           <div className="categorie-tete">
             <h2 className="installations-titre">
-              Installations club
+              Bonus additionnels
             </h2>
           </div>
 
+          {/* ================= INSTALLATIONS ================= */}
           <ClubFacilitiesPanel
             selections={Object.fromEntries(
-              (installations || []).map((id) => [id, 1])
+              (installations || []).map(
+                (id) => [id, 1]
+              )
             )}
             onChange={(newSelections) => {
               const selectedInstallations =
-                Object.entries(newSelections || {})
-                  .filter(([_, niveau]) => niveau > 0)
+                Object.entries(
+                  newSelections || {}
+                )
+                  .filter(
+                    ([_, niveau]) => niveau > 0
+                  )
                   .map(([id]) => id)
 
-              onInstallations(selectedInstallations)
+              onInstallations(
+                selectedInstallations
+              )
             }}
           />
+
+          {/* ================= MAÎTRISES ================= */}
+          <div className="mt-[10px]">
+            <MaitrisesPanel  selections={maitrises}  onChange={setMaitrises}/>
+          </div>
 
         </div>
 
@@ -215,12 +250,7 @@ export default function PlayStylesPanel({
         <div className="w-full lg:flex-1 min-w-0 max-w-80">
 
           <div className="playstyles-summary">
-            <JaugePoints
-              depenses={depenses}
-              budget={budget}
-              niveau={niveau}
-              onNiveau={onNiveau}
-            />
+            <JaugePoints  depenses={depenses}  budget={budget}  niveau={niveau}  onNiveau={onNiveau}/>
           </div>
 
         </div>
@@ -243,7 +273,8 @@ export default function PlayStylesPanel({
       ) : null}
 
 
-      {/* ==================== POPUP SPÉCIALISATION ==================== */}
+      {/* ================== POPUP SPÉCIALISATION ====================== */}
+          
       {ouvertSpec ? (
         <ChoixSpecialisation
           arche={arche}

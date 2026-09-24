@@ -3,17 +3,7 @@ import { estEtoiles, coutPoint } from '../../lib/couts.js'
 import Etoiles from './Etoiles.jsx'
 import BonusStats from './BonusStats.jsx'
 
-export default function LigneAttribut({
-  attr,
-  reg,
-  valeur,
-  cout,
-  abordable,
-  restant,
-  onChange,
-  arche,
-  corps
-}) {
+export default function LigneAttribut({ attr, reg, valeur, cout, abordable, onChange, arche, corps, bonusStats }) {
   const etoiles = estEtoiles(reg)
   const investi = valeur > reg.base
   const borne = (x) => Math.max(0, Math.min(100, x))
@@ -191,14 +181,9 @@ export default function LigneAttribut({
         <div className="ligne-tete">
 
           <span className="ligne-nom flex">
-            {attr.nom}{' '}
-
-            <BonusStats
-              arche={arche}
-              attr={attr}
-              corps={corps}
-            />
-
+            {attr.nom}
+            {' '}
+            <BonusStats arche={arche} attr={attr} corps={corps} bonusStats={bonusStats} />
             {reg.cle ? (
               <em
                 className="remise"

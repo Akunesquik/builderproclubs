@@ -1,12 +1,14 @@
 import { useMemo } from 'react'
 import { calculerAjustementTaillePoids } from '../../lib/taillePoids.js'
 
-export default function BonusStats({ arche, attr, corps }) {
+export default function BonusStats({ arche, attr, corps, bonusStats }) {
     const ajustementAffichage = useMemo(() => {
-        const ajustement = calculerAjustementTaillePoids({ attr, corps, arche });  
+        const taillepoids = calculerAjustementTaillePoids({ attr, corps, arche });  
+        const bonusMaitrise = bonusStats?.[attr.id] || 0
+        const ajustement = taillepoids + bonusMaitrise
         return ajustement !== 0 ? (ajustement > 0 ? `+${ajustement}` : `${ajustement}`) : '';
 
-    }, [calculerAjustementTaillePoids, attr, corps, arche])
+    }, [calculerAjustementTaillePoids, attr, corps, arche, bonusStats])
 
     // Retourner le span UNIQUEMENT s'il y a quelque chose à afficher
     return ajustementAffichage !== '' ? (

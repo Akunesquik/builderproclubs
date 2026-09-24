@@ -205,6 +205,8 @@ const playStyles = lire('PlayStyles').map((r) => {
   return { nom: tx(r.nom), categorie: tx(r.categorie), exigences }
 })
 
+/* -------------------------------------------- Installation Club ---- */
+
 const installationsClubRows = lire('InstallationsClub')
 
 const installationsMap = new Map()
@@ -306,7 +308,63 @@ for (const inst of installationsClub) {
   }))
 }
 
-console.log('Installations Club:', installationsClub)
+/* ------------------------------------------------------------ Maitrise ---- */
+
+const maitrise = {}
+
+for (const row of lire('Maitrise')) {
+  const archetype = tx(row['Archétype'])
+
+  if (!archetype) continue
+
+  const maitriseArchetype = {}
+
+  for (const palier of ['10', '30']) {
+    const valeur = tx(row[palier])
+
+    if (!valeur) {
+      maitriseArchetype[palier] = []
+      continue
+    }
+
+    maitriseArchetype[palier] = valeur
+      .split(';')
+      .map((bonus) => bonus.trim())
+      .filter(Boolean)
+      .map((bonus) => {
+        // Exemple : "Passes Longues +1"
+        const match = bonus.match(/^(.+?)\s*\+(\d+)$/)
+
+        if (!match) {
+          throw new Error(
+            `Maitrise « ${archetype} » : bonus invalide « ${bonus} »`
+          )
+        }
+
+        const nomAttribut = match[1].trim()
+        const gain = Number(match[2])
+
+        // Conversion du nom Excel vers l'id de l'attribut
+        const attribut = attributs.find(
+          (a) => a.nom.toLowerCase() === nomAttribut.toLowerCase()
+        )
+
+        if (!attribut) {
+          throw new Error(
+            `Maitrise « ${archetype} » : attribut inconnu « ${nomAttribut} »`
+          )
+        }
+
+        return {
+          attribut: attribut.id,
+          gain,
+        }
+      })
+  }
+
+  maitrise[archetype] = maitriseArchetype
+}
+
 
 /* ------------------------------------------------------------ sortie --- */
 
@@ -320,6 +378,7 @@ const data = {
   niveaux,
   playStyles,
   installationsClub,
+  maitrise,
 }
 
 writeFileSync(CIBLE, JSON.stringify(data))
