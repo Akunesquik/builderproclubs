@@ -14,31 +14,37 @@ export default function ClubFacilitiesPanel({ selections, onChange }) {
   }, [ouvert])
 
   // Use the pre-processed data from fc27.json, sorted by name
-const installationsClub = [...DATA.installationsClub].sort((a, b) =>
-  a.nom.localeCompare(b.nom)
-)
+  const installationsClub = [...DATA.installationsClub].sort((a, b) =>
+    a.nom.localeCompare(b.nom)
+  )
 
   // Calculate total cost of selected installations
-  const totalCost = Object.entries(selections || {}).reduce((total, [installationId, selectedNiveau]) => {
-    const installation = installationsClub.find(inst => inst.id === installationId)
-    if (installation && selectedNiveau >= 1 && selectedNiveau <= 3) {
-      const niveauData = installation.niveaux[selectedNiveau]
-      if (niveauData) {
-        const cost = niveauData.cost ?? 0
-        return total + cost
+  const totalCost = Object.entries(selections || {}).reduce(
+    (total, [installationId, selectedNiveau]) => {
+      const installation = installationsClub.find(
+        (inst) => inst.id === installationId
+      )
+
+      if (installation && selectedNiveau >= 1 && selectedNiveau <= 3) {
+        const niveauData = installation.niveaux[selectedNiveau - 1]
+
+        if (niveauData) {
+          const cost = niveauData.cost ?? 0
+          return total + cost
+        }
       }
-    }
-    return total
-  }, 0)
+
+      return total
+    },0)
 
   function toggleNiveau(installationId, niveau) {
-    onChange(prevSelections => {
-      const newSelections = { ...(prevSelections || {}) }
+      console.log('CLICK', installationId, niveau)
+   onChange((prev) => {
+    console.log("click")
+
+      const newSelections = { ...(prev || {}) }
       const currentNiveau = newSelections[installationId] || 0
 
-      // If clicking on a selected niveau, deselect it (set to 0)
-      // If clicking on a different niveau, select that niveau
-      // If clicking on the same niveau when it's 0, select it
       if (currentNiveau === niveau) {
         newSelections[installationId] = 0
         // Remove entry if 0 to keep object clean
@@ -49,6 +55,7 @@ const installationsClub = [...DATA.installationsClub].sort((a, b) =>
         newSelections[installationId] = niveau
       }
 
+      console.log(newSelections)
       return newSelections
     })
   }
@@ -109,9 +116,9 @@ const installationsClub = [...DATA.installationsClub].sort((a, b) =>
                       const bonusLines = bonusText.split(/\r?\n/)
 
                       return (
-                        <div
+                        <button
                           key={niveau}
-                          className={`table-cell niveau-bonus ${isSelected ? 'selected' : ''}`}
+                          className={`  table-cell  niveau-bonus  border  rounded  transition-all  ${isSelected    ? 'border-green-400 bg-green-400/10'    : 'border-transparent hover:border-filet-fort'  }`}
                           onClick={() => toggleNiveau(installation.id, niveau)}
                           title={`Niveau ${niveau}: ${costText} coûts`}
                         >
@@ -130,7 +137,7 @@ const installationsClub = [...DATA.installationsClub].sort((a, b) =>
                             );
                           })}
                           <div className="cost-indicator">+{costText}</div>
-                        </div>
+                        </button>
                       )
                     })}
                   </div>

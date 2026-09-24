@@ -217,25 +217,8 @@ export default function PlayStylesPanel({
 
           {/* ================= INSTALLATIONS ================= */}
           <ClubFacilitiesPanel
-            selections={Object.fromEntries(
-              (installations || []).map(
-                (id) => [id, 1]
-              )
-            )}
-            onChange={(newSelections) => {
-              const selectedInstallations =
-                Object.entries(
-                  newSelections || {}
-                )
-                  .filter(
-                    ([_, niveau]) => niveau > 0
-                  )
-                  .map(([id]) => id)
-
-              onInstallations(
-                selectedInstallations
-              )
-            }}
+            selections={installations}
+            onChange={onInstallations}
           />
 
           {/* ================= MAÎTRISES ================= */}
