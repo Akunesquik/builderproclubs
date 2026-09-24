@@ -214,10 +214,7 @@ const installationsMap = new Map()
 for (const row of installationsClubRows) {
   const installation = tx(row['Installation'])
   const niveauStr = tx(row['Niveau'])
-  const bonusValue = tx(row['Bonus d\'attributs'])
-  const styleJeu = tx(row['Style de jeu'])
 
-  // Ignore les lignes invalides
   if (!installation || !niveauStr) continue
 
   // Récupération du numéro de niveau
@@ -227,15 +224,25 @@ for (const row of installationsClubRows) {
 
   const niveau = parseInt(niveauMatch[0], 10)
 
-  // On accepte uniquement les niveaux 1 à 3
   if (niveau < 1 || niveau > 3) continue
 
-  // Récupération du coût
-  const costValue = row['Cout (€)']
+  // Bonus
+  const bonusValue = tx(row['Bonus d\'attributs'])
+    .replace(/\r?\n/g, ' // ')
+
+  // Style de jeu
+  const styleJeu = tx(row['Style de jeu'])
+
+  // Coût
 
   let cost = 0
+  const costValue = row['Coût']
 
-  if (costValue !== null && costValue !== undefined && costValue !== '') {
+  if (
+    costValue !== null &&
+    costValue !== undefined &&
+    costValue !== ''
+  ) {
     if (typeof costValue === 'number') {
       cost = costValue
     } else {
@@ -285,7 +292,6 @@ for (const row of installationsClubRows) {
 
   const inst = installationsMap.get(installation)
 
-  // Enregistrement des données du niveau
   inst.niveaux[niveau] = {
     bonus: bonusValue,
     cost,

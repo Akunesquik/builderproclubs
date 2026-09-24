@@ -110,33 +110,43 @@ export default function ClubFacilitiesPanel({ selections, onChange }) {
                       const isSelected = selectedNiveau === niveau
                       const niveauData = installation.niveaux[niveau - 1]
                       const bonusText = niveauData ? niveauData.bonus : '-'
+                      console.log(niveauData)
                       const costText = niveauData ? (niveauData.cost ?? 0).toLocaleString() : '0'
 
-                      // Split bonus by \n to display each attribute on a separate line
-                      const bonusLines = bonusText.split(/\r?\n/)
+                      const bonusLines = bonusText.split('//')
 
                       return (
                         <button
                           key={niveau}
-                          className={`  table-cell  niveau-bonus  border  rounded  transition-all  ${isSelected    ? 'border-green-400 bg-green-400/10'    : 'border-transparent hover:border-filet-fort'  }`}
+                          className={`table-cell niveau-bonus border rounded transition-all ${
+                            isSelected
+                              ? 'border-green-400 bg-green-400/10'
+                              : 'border-transparent hover:border-filet-fort'
+                          }`}
                           onClick={() => toggleNiveau(installation.id, niveau)}
                           title={`Niveau ${niveau}: ${costText} coûts`}
                         >
                           {bonusLines.map((line, index) => {
-                            const match = line.trim().match(/^(.+)\s+(\+\d+)$/);
-                            let attr = line;
-                            let value = '';
+                            const match = line.trim().match(/^(.+?)\s+\+(\d+)$/)
+
+                            let attr = line.trim()
+                            let value = ''
+
                             if (match) {
-                              attr = match[1];
-                              value = match[2];
+                              attr = match[1]
+                              value = match[2]
                             }
+
                             return (
                               <div key={index} className="bonus-line">
                                 {attr} : <span className="bonus-value">{value}</span>
                               </div>
-                            );
+                            )
                           })}
-                          <div className="cost-indicator">+{costText}</div>
+
+                          <div className="cost-indicator">
+                            +{costText}
+                          </div>
                         </button>
                       )
                     })}

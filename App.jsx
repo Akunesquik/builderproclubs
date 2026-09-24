@@ -88,9 +88,9 @@ export default function App() {
   useEffect(() => {
     const nouveauxBonus = {}
 
+    // MAÎTRISES
     Object.entries(maitrises).forEach(([archetypeId, niveaux]) => {
       const maitrise = DATA.maitrise?.[archetypeId]
-
       if (!maitrise) return
 
       niveaux.forEach((niveau) => {
@@ -103,8 +103,46 @@ export default function App() {
       })
     })
 
+    // INSTALLATIONS
+    Object.entries(installations).forEach(
+      ([installationId, niveau]) => {
+        const installation = DATA.installationsClub?.find(
+          (inst) => inst.id === installationId
+        )
+        console.log(installation)
+        if (!installation) return
+
+        const niveauData = installation.niveaux[niveau - 1]
+
+        if (!niveauData?.bonus) return
+        const bonusLines = niveauData.bonus.split('//')
+
+        bonusLines.forEach((line) => {
+            const match = line
+              .trim()
+              .match(/^(.+?)\s+\+(\d+)$/)
+
+            if (!match) return
+
+            const nomAttribut = match[1].trim()
+            const gain = Number(match[2])
+
+            const attribut = DATA.attributs.find(
+              (attr) =>
+                attr.nom.toLowerCase() ===
+                nomAttribut.toLowerCase()
+            )
+
+            if (!attribut) return
+
+            nouveauxBonus[attribut.id] =
+              (nouveauxBonus[attribut.id] || 0) + gain
+          })
+      }
+    )
+
     setBonusStats(nouveauxBonus)
-  }, [maitrises])
+  }, [maitrises, installations])
 
   function ajuster(attrId, sens) {
     setStats((s) => {
