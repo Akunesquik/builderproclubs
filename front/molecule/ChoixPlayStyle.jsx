@@ -13,16 +13,7 @@ import DATA from '../../data/fc27.json'
  * Liste des PlayStyles disponibles pour l'archétype, triée par coût croissant,
  * avec le détail des points d'attribut à payer pour chacun.
  */
-export default function ChoixPlayStyle({
-  arche,
-  stats,
-  restant,
-  deja,
-  onChoisir,
-  onRetirer,
-  onFermer,
-  spec,
-}) {
+export default function ChoixPlayStyle({arche,stats,restant,deja,onChoisir,onRetirer,onFermer,spec,}) {
   useEffect(() => {
     const esc = (e) => e.key === 'Escape' && onFermer()
 
