@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
-
+import ListePerks from './petit/ListePerks.jsx'
 import {
   playStylesAccessibles,
   detailExigences,
@@ -143,17 +143,21 @@ export default function ChoixPlayStyle({
                         return (
                           <button
                             key={item.ps.nom}
+                            disabled={estPlayStyleGold}
                             className={
                               `flex shrink-0 flex-row items-center gap-2 rounded border p-2 transition ` +
                               (item.pris || estPlayStyleGold
                                 ? 'playstyle-choice-selected'
                                 : 'playstyle-choice-available') +
-                              (!item.ouvert
+                              (!item.ouvert && !estPlayStyleGold
                                 ? ' playstyle-choice-locked'
                                 : '') +
                               (item.cout > restant &&
                               item.cout > 0
                                 ? ' playstyle-choice-unaffordable'
+                                : '') +
+                              (estPlayStyleGold
+                                ? ' cursor-not-allowed'
                                 : '')
                             }
                             onClick={() => {
@@ -183,7 +187,8 @@ export default function ChoixPlayStyle({
                             }
                           >
                             <span className="relative flex shrink-0 items-center justify-center">
-                              {!item.ouvert && !estPlayStyleGold ? (
+                              {!item.ouvert &&
+                              !estPlayStyleGold ? (
                                 <span
                                   className="
                                     absolute
@@ -281,108 +286,23 @@ export default function ChoixPlayStyle({
               )}
             </div>
 
-            {/* ==================== MOINS CHERS ==================== */}
-            <div className="rounded border border-gray-700 p-2">
-              <h3 className="mb-2 font-bold">
-                Les 5 perks les moins chers
-              </h3>
+            <ListePerks
+              titre="Les 5 perks les moins chers"
+              perks={moinsChers}
+              playStyleGold={playStyleGold}
+              NOM_FR_PLAYSTYLE={NOM_FR_PLAYSTYLE}
+            />
 
-              <ol className="space-y-2">
-                {moinsChers.map(
-                  ({ ps, cout, pris }) => (
-                    <li
-                      key={ps.nom}
-                      className="
-                        flex
-                        items-center
-                        justify-between
-                        gap-2
-                      "
-                    >
-                      <span
-                        className={
-                          'flex min-w-0 items-center gap-1 ' +
-                          (pris
-                            ? 'text-green-400'
-                            : '')
-                        }
-                      >
-                        <img
-                          src={`${import.meta.env.BASE_URL}img/playstyles/${
-                            ps.nom === playStyleGold
-                              ? 'gold'
-                              : 'silver'
-                          }/${NOM_FR_PLAYSTYLE[ps.nom]}.png`}
-                          alt=""
-                          className="h-8 w-8 shrink-0 object-contain"
-                        />
-
-                        <span className="truncate">
-                          {ps.nom}
-                        </span>
-                      </span>
-
-                      <strong className="shrink-0">
-                        {cout} AP
-                      </strong>
-                    </li>
-                  )
-                )}
-              </ol>
-            </div>
-
-            {/* ==================== PLUS CHERS ==================== */}
-            <div className="rounded border border-gray-700 p-2">
-              <h3 className="mb-2 font-bold">
-                Les 5 perks les plus chers
-              </h3>
-
-              <ol className="space-y-2">
-                {plusChers.map(
-                  ({ ps, cout, pris }) => (
-                    <li
-                      key={ps.nom}
-                      className="
-                        flex
-                        items-center
-                        justify-between
-                        gap-2
-                      "
-                    >
-                      <span
-                        className={
-                          'flex min-w-0 items-center gap-1 ' +
-                          (pris
-                            ? 'text-green-400'
-                            : '')
-                        }
-                      >
-                        <img
-                          src={`${import.meta.env.BASE_URL}img/playstyles/${
-                            ps.nom === playStyleGold
-                              ? 'gold'
-                              : 'silver'
-                          }/${NOM_FR_PLAYSTYLE[ps.nom]}.png`}
-                          alt=""
-                          className="h-8 w-8 shrink-0 object-contain"
-                        />
-
-                        <span className="truncate">
-                          {ps.nom}
-                        </span>
-                      </span>
-
-                      <strong className="shrink-0">
-                        {cout} AP
-                      </strong>
-                    </li>
-                  )
-                )}
-              </ol>
-            </div>
+            <ListePerks
+              titre="Les 5 perks les plus chers"
+              perks={plusChers}
+              playStyleGold={playStyleGold}
+              NOM_FR_PLAYSTYLE={NOM_FR_PLAYSTYLE}
+            />
           </div>
         </div>
       </div>
     </div>
   )
 }
+
