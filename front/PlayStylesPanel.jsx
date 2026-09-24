@@ -1,18 +1,21 @@
 import { useState } from 'react'
-import { NB_SLOTS, appliquer, parNom, coutPlayStyle, estDebloque } from '../lib/playstyles.js'
-import { appliquerSpec, specParNom, estDebloqueeSpec } from '../lib/specialisations.js'
+import {
+  NB_SLOTS,
+  appliquer,
+  parNom,
+  estDebloque,
+} from '../lib/playstyles.js'
+import {
+  appliquerSpec,
+  estDebloqueeSpec,
+} from '../lib/specialisations.js'
+
 import ChoixPlayStyle from './molecule/ChoixPlayStyle.jsx'
 import ChoixSpecialisation from './molecule/ChoixSpecialisation.jsx'
 import ClubFacilitiesPanel from './ClubFacilitiesPanel.jsx'
 import MaitrisesPanel from './MaitrisesPanel.jsx'
 import JaugePoints from './molecule/JaugePoints.jsx'
 
-/**
- * Les emplacements de PlayStyles du build, plus l'emplacement de spécialisation.
- * Choisir un PlayStyle/une spécialisation monte automatiquement les attributs requis
- * à leur seuil ; le retirer libère l'emplacement mais ne rend pas les AP
- * (à toi de rebaisser les stats).
- */
 export default function PlayStylesPanel({
   arche,
   stats,
@@ -27,7 +30,9 @@ export default function PlayStylesPanel({
   depenses,
   budget,
   niveau,
-  onNiveau
+  onNiveau,
+  maitrises,
+  setMaitrises,
 }) {
   const [ouvert, setOuvert] = useState(null)
   const [ouvertSpec, setOuvertSpec] = useState(false)
@@ -35,6 +40,7 @@ export default function PlayStylesPanel({
   function choisir(ps) {
     const suivants = [...slots]
     suivants[ouvert] = ps.nom
+
     onSlots(suivants)
     onStats(appliquer(arche, stats, ps))
     setOuvert(null)
@@ -45,11 +51,17 @@ export default function PlayStylesPanel({
 
     const suivants = [...slots]
     suivants[i] = null
+
     onSlots(suivants)
   }
 
   function retirerDepuisLaPopup(nom) {
-    onSlots(slots.map((slot) => (slot === nom ? null : slot)))
+    onSlots(
+      slots.map((slot) =>
+        slot === nom ? null : slot
+      )
+    )
+
     setOuvert(null)
   }
 
@@ -60,16 +72,22 @@ export default function PlayStylesPanel({
   }
 
   const spChoisie = spec
+
   const specPerdue =
-    spChoisie && !estDebloqueeSpec(arche, stats, spChoisie)
+    spChoisie &&
+    !estDebloqueeSpec(arche, stats, spChoisie)
 
   return (
     <section className="w-full">
 
-      {/* Les 4 blocs ont la même largeur */}
-      <div className=" flex flex-row gap-4 w-full mx-auto justify-center">
+      {/* =====================================================
+          LES 4 BLOCS
+      ===================================================== */}
+      <div className="flex flex-row gap-4 w-full mx-auto justify-center">
 
-        {/* ==================== SPÉCIALITÉ ==================== */}
+        {/* ===================================================
+            SPÉCIALITÉ
+        =================================================== */}
         <div className="flex-1 min-w-0 max-w-50">
 
           <div className="categorie-tete">
@@ -78,6 +96,7 @@ export default function PlayStylesPanel({
 
           <div className="specialite-ligne">
             <button
+              type="button"
               className={
                 (spChoisie ? ' rempli' : '') +
                 (specPerdue ? ' perdu' : '') +
@@ -95,7 +114,7 @@ export default function PlayStylesPanel({
                   <img
                     src={`${import.meta.env.BASE_URL}img/playstyles/gold/${spChoisie.archetypeGagne.slice(0, -1)}.png`}
                     alt={spChoisie.archetypeGagne}
-                    className='h-20'
+                    className="h-20"
                   />
 
                   <span className="pr-2 text-left text-sm font-bold">
@@ -104,7 +123,10 @@ export default function PlayStylesPanel({
                 </>
               ) : (
                 <>
-                  <span className="slot-plus">+</span>
+                  <span className="slot-plus">
+                    +
+                  </span>
+
                   <span className="slot-cat">
                     spécialisation
                   </span>
@@ -116,71 +138,90 @@ export default function PlayStylesPanel({
         </div>
 
 
-        {/* ==================== PLAYSTYLES ==================== */}
-        <div className="flex-1 min-w-0 ">
+        {/* ===================================================
+            PLAYSTYLES
+        =================================================== */}
+        <div className="flex-1 min-w-0">
 
           <div className="flex justify-between items-center categorie-tete">
             <h2>PlayStyles</h2>
 
             <span className="categorie-moy">
               <em>équipés</em>
-              <h2>{slots.filter(Boolean).length}/{NB_SLOTS}</h2>
+              <h2>
+                {slots.filter(Boolean).length}/{NB_SLOTS}
+              </h2>
             </span>
           </div>
 
           <div>
             <div className="flex flex-wrap gap-3 pt-3">
 
-              {Array.from({ length: NB_SLOTS }, (_, i) => {
-                const nom = slots[i]
-                const ps = nom ? parNom(nom) : null
-                const perdu =
-                  ps && !estDebloque(arche, stats, ps)
+              {Array.from(
+                { length: NB_SLOTS },
+                (_, i) => {
+                  const nom = slots[i]
 
-                return (
-                  <button
-                    key={i}
-                    className={
-                      (ps ? ' rempli' : '') +
-                      (perdu ? ' perdu' : '') +
-                      ' flex flex-row items-center gap-2 border border-gray-500 rounded p-2 max-w-full'
-                    }
-                    onClick={() => setOuvert(i)}
-                    title={
-                      perdu
-                        ? 'Les seuils ne sont plus atteints'
-                        : undefined
-                    }
-                  >
-                    {ps ? (
-                      <>
-                        <img
-                          src={`${import.meta.env.BASE_URL}img/playstyles/silver/${ps.nom}.png`}
-                          alt={ps.nom}
-                          className='h-20'
-                        />
+                  const ps = nom
+                    ? parNom(nom)
+                    : null
 
-                        <span
-                          onClick={(e) => retirer(i, e)}
-                          role="button"
-                        >
-                          ×
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="slot-plus">
-                          +
-                        </span>
+                  const perdu =
+                    ps &&
+                    !estDebloque(
+                      arche,
+                      stats,
+                      ps
+                    )
 
-                        <span className="slot-cat flex items-center min-h-[80px] max-w-[78px]">
-                          emplacement libre
-                        </span>
-                      </>
-                    )}
-                  </button>
-                )
-              })}
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      className={
+                        (ps ? ' rempli' : '') +
+                        (perdu ? ' perdu' : '') +
+                        ' flex flex-row items-center gap-2 border border-gray-500 rounded p-2 max-w-full'
+                      }
+                      onClick={() => setOuvert(i)}
+                      title={
+                        perdu
+                          ? 'Les seuils ne sont plus atteints'
+                          : undefined
+                      }
+                    >
+                      {ps ? (
+                        <>
+                          <img
+                            src={`${import.meta.env.BASE_URL}img/playstyles/silver/${ps.nom}.png`}
+                            alt={ps.nom}
+                            className="h-20"
+                          />
+
+                          <span
+                            onClick={(e) =>
+                              retirer(i, e)
+                            }
+                            role="button"
+                          >
+                            ×
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="slot-plus">
+                            +
+                          </span>
+
+                          <span className="slot-cat flex items-center min-h-[80px] max-w-[78px]">
+                            emplacement libre
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  )
+                }
+              )}
 
             </div>
           </div>
@@ -188,7 +229,9 @@ export default function PlayStylesPanel({
         </div>
 
 
-        {/* ==================== INSTALLATIONS ==================== */}
+        {/* ===================================================
+            BONUS ADDITIONNELS
+        =================================================== */}
         <div className="flex-1 min-w-0 max-w-70">
 
           <div className="categorie-tete">
@@ -197,53 +240,44 @@ export default function PlayStylesPanel({
             </h2>
           </div>
 
+          {/* ================= INSTALLATIONS ================= */}
           <ClubFacilitiesPanel
             selections={Object.fromEntries(
-              (installations || []).map((id) => [id, 1])
+              (installations || []).map(
+                (id) => [id, 1]
+              )
             )}
             onChange={(newSelections) => {
-
               const selectedInstallations =
-                Object.entries(newSelections || {})
-                  .filter(([_, niveau]) => niveau > 0)
+                Object.entries(
+                  newSelections || {}
+                )
+                  .filter(
+                    ([_, niveau]) => niveau > 0
+                  )
                   .map(([id]) => id)
 
-              onInstallations(selectedInstallations)
+              onInstallations(
+                selectedInstallations
+              )
             }}
           />
 
-          {/* ==================== MAITRISES ==================== */}
+          {/* ================= MAÎTRISES ================= */}
           <div className="mt-[10px]">
-            <MaitrisesPanel
-              selections={Object.fromEntries(
-                (installations || []).map((id) => [id, 1])
-              )}
-              onChange={(newSelections) => {
-                const selectedArchetypes =
-                  Object.entries(newSelections || {})
-                    .filter(([_, niveau]) => niveau > 0)
-                    .map(([id]) => id)
-
-                // For now, we'll just update installations state as a placeholder
-                // In a real implementation, you might want a separate state for archetypes
-                onInstallations(selectedArchetypes)
-              }}
-            />
+            <MaitrisesPanel  selections={maitrises}  onChange={setMaitrises}/>
           </div>
 
         </div>
 
 
-        {/* ==================== RÉSUMÉ ==================== */}
+        {/* ===================================================
+            RÉSUMÉ
+        =================================================== */}
         <div className="flex-1 min-w-0 max-w-80">
 
           <div className="playstyles-summary">
-            <JaugePoints
-              depenses={depenses}
-              budget={budget}
-              niveau={niveau}
-              onNiveau={onNiveau}
-            />
+            <JaugePoints  depenses={depenses}  budget={budget}  niveau={niveau}  onNiveau={onNiveau}/>
           </div>
 
         </div>
@@ -251,7 +285,9 @@ export default function PlayStylesPanel({
       </div>
 
 
-      {/* ==================== POPUP PLAYSTYLE ==================== */}
+      {/* =====================================================
+          POPUP PLAYSTYLE
+      ===================================================== */}
       {ouvert !== null ? (
         <ChoixPlayStyle
           arche={arche}
@@ -265,7 +301,9 @@ export default function PlayStylesPanel({
       ) : null}
 
 
-      {/* ==================== POPUP SPÉCIALISATION ==================== */}
+      {/* =====================================================
+          POPUP SPÉCIALISATION
+      ===================================================== */}
       {ouvertSpec ? (
         <ChoixSpecialisation
           arche={arche}

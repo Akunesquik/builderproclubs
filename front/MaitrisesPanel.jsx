@@ -6,88 +6,89 @@ export default function MaitrisesPanel({ selections, onChange }) {
 
   useEffect(() => {
     if (!ouvert) return undefined
+
     const fermerAvecEchap = (event) => {
-      if (event.key === 'Escape') setOuvert(false)
+      if (event.key === 'Escape') {
+        setOuvert(false)
+      }
     }
+
     window.addEventListener('keydown', fermerAvecEchap)
-    return () => window.removeEventListener('keydown', fermerAvecEchap)
+
+    return () => {
+      window.removeEventListener('keydown', fermerAvecEchap)
+    }
   }, [ouvert])
 
-  // Use the pre-processed data from fc27.json, sorted by group and then by name
-  // Group order: DEF (défense), MID (milieu), ATT (attaque)
-  const groupeOrder = { DEF: 0, MID: 1, ATT: 2 };
-  const archetypes = [...DATA.archetypes].sort((a, b) => {
-    const groupDiff = (groupeOrder[a.groupe] || 999) - (groupeOrder[b.groupe] || 999);
-    if (groupDiff !== 0) return groupDiff;
-    return a.nom.localeCompare(b.nom);
-  })
-
-  // Define the levels we want to show (based on user example: 10, 30)
-  const niveauxToShow = [10, 30]
-
-  // Calculate total cost of selected archetypes (though archetypes don't have costs in the data)
-  // We'll use a placeholder cost calculation for now
-  const totalCost = 0
-
-  function toggleNiveau(archetypeId, niveau) {
-    onChange(prevSelections => {
-      const newSelections = { ...(prevSelections || {}) }
-      const currentNiveau = newSelections[archetypeId] || 0
-
-      // If clicking on a selected niveau, deselect it (set to 0)
-      // If clicking on a different niveau, select that niveau
-      if (currentNiveau === niveau) {
-        newSelections[archetypeId] = 0
-        // Remove entry if 0 to keep object clean
-        if (newSelections[archetypeId] === 0) {
-          delete newSelections[archetypeId]
-        }
-      } else {
-        newSelections[archetypeId] = niveau
-      }
-
-      return newSelections
-    })
+  const groupeOrder = {
+    DEF: 0,
+    MID: 1,
+    ATT: 2,
   }
 
-  // Calculate the stat value for a given archetype, stat, and level
-  function getStatValue(archetype, statName, niveau) {
-    const stat = archetype.stats[statName]
-    if (!stat) return 0
+  const archetypes = [...DATA.archetypes].sort((a, b) => {
+    const groupDiff =
+      (groupeOrder[a.groupe] ?? 999) -
+      (groupeOrder[b.groupe] ?? 999)
 
-    // Find the level data
-    const niveauData = DATA.niveaux.find(n => n.niveau === niveau)
-    if (!niveauData) return stat.base
+    if (groupDiff !== 0) return groupDiff
 
-    // Calculate the stat progression based on level
-    // This is a simplified calculation - in reality, this would be more complex
-    const cumul = niveauData.cumul
-    const base = stat.base
-    const min = stat.min
-    const max = stat.max
+    return a.nom.localeCompare(b.nom)
+  })
 
-    // Simple linear interpolation between min and max based on cumul
-    // Max cumul is 962 (from niveau 40)
-    const maxCumul = 962
-    const progress = Math.min(cumul / maxCumul, 1) // Cap at 1.0
-    const value = Math.round(min + (max - min) * progress)
+  const niveauxToShow = [10, 30]
 
-    return value
+  function toggleNiveau(archetypeId, niveau) {
+    console.log('CLICK', archetypeId, niveau)
+
+    const currentNiveau =
+      selections?.[archetypeId] || 0
+
+    // Si on clique sur le niveau déjà sélectionné,
+    // on le désélectionne
+    if (currentNiveau === niveau) {
+      onChange((prev) => {
+        const nouveau = { ...(prev || {}) }
+        delete nouveau[archetypeId]
+        return nouveau
+      })
+
+      return
+    }
+
+    // Sinon on sélectionne le nouveau niveau
+    onChange((prev) => ({
+      ...(prev || {}),
+      [archetypeId]: niveau,
+    }))
   }
 
   return (
     <>
-      <button type="button" onClick={() => setOuvert(true)} className="club-facilities">
+      {/* Bouton Maîtrises */}
+      <button
+        type="button"
+        onClick={() => setOuvert(true)}
+        className="club-facilities"
+      >
         <img
           className="club-facilities-image"
           src={`${import.meta.env.BASE_URL}img/installations-club/Maitrise.png`}
           alt=""
         />
-        <span className="club-facilities-label">Maîtrises</span>
+
+        <span className="club-facilities-label">
+          Maîtrises
+        </span>
       </button>
 
-      {ouvert ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/90" onClick={() => setOuvert(false)} role="presentation">
+      {/* Modal */}
+      {ouvert && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/90"
+          onClick={() => setOuvert(false)}
+          role="presentation"
+        >
           <div
             className="relative w-[800px] max-w-full p-4.5 border border-filet-fort rounded modale"
             role="dialog"
@@ -95,86 +96,129 @@ export default function MaitrisesPanel({ selections, onChange }) {
             aria-label="Maîtrises"
             onClick={(event) => event.stopPropagation()}
           >
+            {/* Header */}
             <header className="flex items-center justify-between gap-4 pb-3 border-b border-filet">
-              <h2 className="text-xl font-semibold">Maîtrises</h2>
-              <div className="total-cost flex items-center gap-2">
-                Coût total: <strong className="whitespace-nolength">{totalCost.toLocaleString()} </strong>
-              </div>
-              <button type="button" onClick={() => setOuvert(false)} aria-label="Fermer" className="text-3xl">×</button>
+              <h2 className="text-xl font-semibold">
+                Maîtrises
+              </h2>
+
+              <button
+                type="button"
+                onClick={() => setOuvert(false)}
+                aria-label="Fermer"
+                className="text-3xl"
+              >
+                ×
+              </button>
             </header>
+
+            {/* Tableau */}
             <div className="club-facilities-liste">
-              {/* Table header */}
+
+              {/* Header */}
               <div className="table-header">
-                <div className="table-cell-header">Archétype</div>
-                {niveauxToShow.map(niveau => (
-                  <div key={niveau} className="table-cell-header">
+                <div className="table-cell-header">
+                  Archétype
+                </div>
+
+                {niveauxToShow.map((niveau) => (
+                  <div
+                    key={niveau}
+                    className="table-cell-header"
+                  >
                     Niveau {niveau}
                   </div>
                 ))}
               </div>
 
-              {/* Table rows */}
-              {archetypes.length > 0 ? (
-                archetypes.map((archetype) => (
-                  <div key={archetype.id} className="table-row">
-                    <div className="table-cell installation-name">{archetype.nom}</div>
-                    {niveauxToShow.map((niveau) => {
-                      const selectedNiveau = (selections || {})[archetype.id] || 0
-                      const isSelected = selectedNiveau === niveau
+              {/* Archétypes */}
+              {archetypes.map((archetype) => (
+                <div
+                  key={archetype.id}
+                  className="table-row"
+                >
+                  {/* Nom de l'archétype */}
+                  <div className="flex gap-2 items-center installation-name">
+                    <img
+                      src={`${import.meta.env.BASE_URL}img/archetypes/${archetype.id.toLowerCase()}.svg`}
+                      alt={archetype.nom}
+                      className="w-16 h-16"
+                    />
 
-                      // For demonstration, we'll show a couple of key stats
-                      // In a real implementation, you might want to show more details or a combination
-                      const placementsGardien = getStatValue(archetype, 'vista', niveau)
-                      const taclesDebout = getStatValue(archetype, 'tacle_debout', niveau)
+                    {archetype.nom}
+                  </div>
 
-                      // Format the bonus text similar to the example
-                      // For Facilitateur at niveau 10: "Placement Gardien +1; Tacles debout +1"
-                      // We'll calculate the actual values based on base stats
+                  {/* Niveaux */}
+                  {niveauxToShow.map((niveau) => {
+                    const selectedNiveau =
+                      selections?.[archetype.id] || 0
 
-                      const basePG = getStatValue(archetype, 'vista', 1)
-                      const baseTD = getStatValue(archetype, 'tacle_debout', 1)
+                    const isSelected =
+                      selectedNiveau === niveau
 
-                      const bonusPG = placementsGardien - basePG
-                      const bonusTD = taclesDebout - baseTD
+                    const maitrise =
+                      DATA.maitrise?.[archetype.id] || {}
 
-                      let bonusText = ''
-                      if (bonusPG > 0) {
-                        bonusText += `Placement Gardien +${bonusPG}`
-                      }
-                      if (bonusTD > 0) {
-                        if (bonusText) bonusText += '; '
-                        bonusText += `Tacles debout +${bonusTD}`
-                      }
-                      if (!bonusText) {
-                        bonusText = '-'
-                      }
+                    const bonus =
+                      maitrise[String(niveau)] || []
 
-                      return (
-                        <div
-                          key={niveau}
-                          className={`table-cell niveau-bonus ${isSelected ? 'selected' : ''}`}
-                          onClick={() => toggleNiveau(archetype.id, niveau)}
-                          title={`Niveau ${niveau}`}
+                    return (
+                      <div
+                        key={niveau}
+                        className="niveau-bonus flex"
+                      >
+                        <button
+                          type="button"
+                          onClick={() =>
+                            toggleNiveau(
+                              archetype.id,
+                              niveau
+                            )
+                          }
+                          className={`
+                            w-full h-full
+                            text-left
+                            rounded
+                            border
+                            transition-all
+                            p-2
+                            ${
+                              isSelected
+                                ? 'border-green-400 bg-green-400/10'
+                                : 'border-transparent hover:border-filet-fort'
+                            }
+                          `}
                         >
-                          <div className="bonus-text">
-                            {bonusText}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                ))
-              ) : (
-                <div className="table-row">
-                  <div className="table-cell installation-name" colSpan={3}>
-                    Aucune donnée de maîtrise disponible
-                  </div>
+                          {bonus.length > 0 ? (
+                            bonus.map(({ attribut, gain }) => {
+                              const attr =
+                                DATA.attributs.find(
+                                  (a) => a.id === attribut
+                                )
+
+                              return (
+                                <div key={attribut}>
+                                  {attr
+                                    ? attr.nom
+                                    : attribut}{' '}
+                                  +{gain}
+                                </div>
+                              )
+                            })
+                          ) : (
+                            '-'
+                          )}
+                        </button>
+                      </div>
+                    )
+                  })}
                 </div>
-              )}
+              ))}
+
             </div>
           </div>
         </div>
-      ) : null}
+      )}
     </>
   )
 }
