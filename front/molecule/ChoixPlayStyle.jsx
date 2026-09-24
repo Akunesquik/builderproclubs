@@ -60,7 +60,7 @@ export default function ChoixPlayStyle({arche,stats,restant,deja,onChoisir,onRet
 
   return (
     <div
-      className="fixed inset-0 z-50 flex sm:items-center justify-center bg-black/75 p-2 sm:p-6 w-full lg:max-w-full"
+      className="fixed inset-0 z-50 flex sm:items-center justify-center bg-black/75 p-2 sm:p-6 w-full lg:max-w-full "
       onClick={onFermer}
       role="dialog"
       aria-modal="true"
@@ -68,7 +68,7 @@ export default function ChoixPlayStyle({arche,stats,restant,deja,onChoisir,onRet
     >
       {/* ==================== MODALE ==================== */}
       <div
-        className="flex w-full max-w-6xl max-h-[90vh] flex-col overflow-hidden rounded-lg bg-gray-900 text-white"
+        className="flex w-full max-w-6xl max-h-[90vh] flex-col overflow-hidden rounded-lg bg-gray-900 text-white modale"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ==================== HEADER ==================== */}
