@@ -5,6 +5,7 @@ import {
   coutPlayStyle,
   estDebloque,
 } from '../../lib/playstyles.js'
+import DATA from '../../data/fc27.json'
 
 /**
  * Liste des PlayStyles disponibles pour l'archétype, triée par coût croissant,
@@ -25,6 +26,10 @@ export default function ChoixPlayStyle({
 
     return () => window.removeEventListener('keydown', esc)
   }, [onFermer])
+
+  const NOM_FR_PLAYSTYLE = Object.fromEntries(
+    DATA.playStyles.map((p) => [p.nom, p.nomFr])
+  )
 
   const [hoveredPs, setHoveredPs] = useState(null)
 
@@ -194,7 +199,7 @@ export default function ChoixPlayStyle({
                             ) : null}
 
                             <img
-                              src={`${import.meta.env.BASE_URL}img/playstyles/silver/${item.ps.nom}.png`}
+                              src={`${import.meta.env.BASE_URL}img/playstyles/silver/${NOM_FR_PLAYSTYLE[item.ps.nom]}.png`}
                               alt={item.ps.nom}
                               className=" h-15 object-contain transition-transform duration-200 hover:scale-105 "
 
@@ -222,7 +227,7 @@ export default function ChoixPlayStyle({
 
             {/* ==================== DÉTAILS ==================== */}
             <div
-              className=" flex w-full flex-col rounded border border-white p-2 h-40"> 
+              className=" flex w-full flex-col rounded border border-white p-2 h-45"> 
               {hoveredPs ? (
                 <>
                   <div className="mb-1 font-bold">
@@ -235,12 +240,7 @@ export default function ChoixPlayStyle({
                       hoveredPs.detail.map((detail) => 
                         <div
                           key={detail.attribut}
-                          className="
-                            mb-2
-                            flex
-                            items-baseline
-                            gap-1
-                          "
+                          className=" mb-2 flex items-baseline gap-1 "
                         >
                           <span>
                             {detail.nom} :
@@ -278,7 +278,7 @@ export default function ChoixPlayStyle({
                   </div>
                 </>
               ) : (
-                <p className="text-center italic h-40 flex items-center">
+                <p className="text-center italic h-45 flex items-center">
                   Survolez un PlayStyle pour voir ses détails
                 </p>
               )}
@@ -313,7 +313,7 @@ export default function ChoixPlayStyle({
                         }
                       >
                         <img
-                          src={`${import.meta.env.BASE_URL}img/playstyles/silver/${ps.nom}.png`}
+                          src={`${import.meta.env.BASE_URL}img/playstyles/silver/${NOM_FR_PLAYSTYLE[ps.nom]}.png`}
                           alt=""
                           className="h-8 w-8 shrink-0 object-contain"
                         />
@@ -361,7 +361,7 @@ export default function ChoixPlayStyle({
                         }
                       >
                         <img
-                          src={`${import.meta.env.BASE_URL}img/playstyles/silver/${ps.nom}.png`}
+                          src={`${import.meta.env.BASE_URL}img/playstyles/silver/${NOM_FR_PLAYSTYLE[ps.nom]}.png`}
                           alt=""
                           className="h-8 w-8 shrink-0 object-contain"
                         />

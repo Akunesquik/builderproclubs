@@ -109,7 +109,6 @@ export default function App() {
         const installation = DATA.installationsClub?.find(
           (inst) => inst.id === installationId
         )
-        console.log(installation)
         if (!installation) return
 
         const niveauData = installation.niveaux[niveau - 1]
@@ -129,7 +128,7 @@ export default function App() {
 
             const attribut = DATA.attributs.find(
               (attr) =>
-                attr.nom.toLowerCase() ===
+                attr.id.toLowerCase() ===
                 nomAttribut.toLowerCase()
             )
 

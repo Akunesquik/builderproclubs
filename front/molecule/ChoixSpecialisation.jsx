@@ -5,6 +5,7 @@ import {
   coutSpecialisation,
   estDebloqueeSpec,
 } from '../../lib/specialisations.js'
+import DATA from '../../data/fc27.json'
 
 /**
  * Les 3 spécialisations de l'archétype, une par ligne :
@@ -28,6 +29,10 @@ export default function ChoixSpecialisation({ arche, stats, restant, deja, onCho
       }))
       .sort((a, b) => a.cout - b.cout)
   }, [arche, stats, deja])
+
+  const NOM_FR_PLAYSTYLE = Object.fromEntries(
+    DATA.playStyles.map((p) => [p.nom, p.nomFr])
+  )
 
   return (
     <div
@@ -73,7 +78,7 @@ export default function ChoixSpecialisation({ arche, stats, restant, deja, onCho
                   onClick={() => onChoisir(spec)}
                 >
                     <img
-                      src={`${import.meta.env.BASE_URL}img/playstyles/gold/${spec.archetypeGagne.slice(0, -1)}.png`}
+                      src={`${import.meta.env.BASE_URL}img/playstyles/gold/${NOM_FR_PLAYSTYLE[spec.archetypeGagne.slice(0, -1)]}.png`}
                       alt={spec.archetypeGagne}
                       title={spec.nom}
                       className='h-20 '

@@ -4,6 +4,10 @@ import DATA from '../data/fc27.json'
 export default function ClubFacilitiesPanel({ selections, onChange }) {
   const [ouvert, setOuvert] = useState(false)
 
+  const NOM_ATTRIBUT = Object.fromEntries(
+    DATA.attributs.map((a) => [a.id, a.nom])
+  )
+
   useEffect(() => {
     if (!ouvert) return undefined
     const fermerAvecEchap = (event) => {
@@ -38,9 +42,7 @@ export default function ClubFacilitiesPanel({ selections, onChange }) {
     },0)
 
   function toggleNiveau(installationId, niveau) {
-      console.log('CLICK', installationId, niveau)
    onChange((prev) => {
-    console.log("click")
 
       const newSelections = { ...(prev || {}) }
       const currentNiveau = newSelections[installationId] || 0
@@ -55,7 +57,6 @@ export default function ClubFacilitiesPanel({ selections, onChange }) {
         newSelections[installationId] = niveau
       }
 
-      console.log(newSelections)
       return newSelections
     })
   }
@@ -110,7 +111,6 @@ export default function ClubFacilitiesPanel({ selections, onChange }) {
                       const isSelected = selectedNiveau === niveau
                       const niveauData = installation.niveaux[niveau - 1]
                       const bonusText = niveauData ? niveauData.bonus : '-'
-                      console.log(niveauData)
                       const costText = niveauData ? (niveauData.cost ?? 0).toLocaleString() : '0'
 
                       const bonusLines = bonusText.split('//')
@@ -133,7 +133,7 @@ export default function ClubFacilitiesPanel({ selections, onChange }) {
                             let value = ''
 
                             if (match) {
-                              attr = match[1]
+                              attr = NOM_ATTRIBUT[match[1]] ?? match[1]
                               value = match[2]
                             }
 

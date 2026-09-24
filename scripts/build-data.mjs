@@ -202,7 +202,7 @@ const playStyles = lire('PlayStyles').map((r) => {
       exigences.push({ attribut: a, seuil: s })
     }
   }
-  return { nom: tx(r.nom), categorie: tx(r.categorie), exigences }
+  return { nom: tx(r.nom), nomFr: tx(r.nom_fr), categorie: tx(r.categorie), exigences }
 })
 
 /* -------------------------------------------- Installation Club ---- */
@@ -352,7 +352,7 @@ for (const row of lire('Maitrise')) {
 
         // Conversion du nom Excel vers l'id de l'attribut
         const attribut = attributs.find(
-          (a) => a.nom.toLowerCase() === nomAttribut.toLowerCase()
+          (a) => a.id.toLowerCase() === nomAttribut.toLowerCase()
         )
 
         if (!attribut) {

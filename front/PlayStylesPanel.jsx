@@ -15,6 +15,7 @@ import ChoixSpecialisation from './molecule/ChoixSpecialisation.jsx'
 import ClubFacilitiesPanel from './ClubFacilitiesPanel.jsx'
 import MaitrisesPanel from './MaitrisesPanel.jsx'
 import JaugePoints from './molecule/JaugePoints.jsx'
+import DATA from '../data/fc27.json'
 
 export default function PlayStylesPanel({
   arche,
@@ -45,6 +46,10 @@ export default function PlayStylesPanel({
     onStats(appliquer(arche, stats, ps))
     setOuvert(null)
   }
+
+  const NOM_FR_PLAYSTYLE = Object.fromEntries(
+    DATA.playStyles.map((p) => [p.nom, p.nomFr])
+  )
 
   function retirer(i, e) {
     e.stopPropagation()
@@ -108,7 +113,7 @@ export default function PlayStylesPanel({
               {spChoisie ? (
                 <>
                   <img
-                    src={`${import.meta.env.BASE_URL}img/playstyles/gold/${spChoisie.archetypeGagne.slice(0, -1)}.png`}
+                    src={`${import.meta.env.BASE_URL}img/playstyles/gold/${NOM_FR_PLAYSTYLE[spChoisie.archetypeGagne.slice(0, -1)]}.png`}
                     alt={spChoisie.archetypeGagne}
                     className="h-20"
                   />
@@ -174,7 +179,7 @@ export default function PlayStylesPanel({
                   {ps ? (
                     <>
                       <img
-                        src={`${import.meta.env.BASE_URL}img/playstyles/silver/${ps.nom}.png`}
+                        src={`${import.meta.env.BASE_URL}img/playstyles/silver/${NOM_FR_PLAYSTYLE[ps.nom]}.png`}
                         alt={ps.nom}
                         className="h-20"
                       />
