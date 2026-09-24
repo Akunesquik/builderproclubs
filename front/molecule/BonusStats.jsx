@@ -6,7 +6,6 @@ export default function BonusStats({ arche, attr, corps, bonusStats }) {
         const taillepoids = calculerAjustementTaillePoids({ attr, corps, arche });  
         const bonusMaitrise = bonusStats?.[attr.id] || 0
         const ajustement = taillepoids + bonusMaitrise
-        console.log(bonusStats)
         return ajustement !== 0 ? (ajustement > 0 ? `+${ajustement}` : `${ajustement}`) : '';
 
     }, [calculerAjustementTaillePoids, attr, corps, arche, bonusStats])

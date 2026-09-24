@@ -39,7 +39,6 @@ export default function MaitrisesPanel({ selections, onChange }) {
   const niveauxToShow = [10, 30]
 
   function toggleNiveau(archetypeId, niveau) {
-    console.log('CLICK', archetypeId, niveau)
 
     const currentNiveau =
       selections?.[archetypeId] || 0
