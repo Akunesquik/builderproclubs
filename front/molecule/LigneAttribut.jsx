@@ -181,17 +181,11 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
         <div className="ligne-tete">
 
           <span className="ligne-nom flex">
-            {attr.nom}
+            <span className={reg.cle ? "text-green-500" : ""}>
+              {attr.nom}
+            </span>
             {' '}
             <BonusStats arche={arche} attr={attr} corps={corps} bonusStats={bonusStats} />
-            {reg.cle ? (
-              <em
-                className="remise"
-                title="Attribut clé : les paliers les moins chers"
-              >
-                clé
-              </em>
-            ) : null}
           </span>
 
           <span className="ligne-valeur">
