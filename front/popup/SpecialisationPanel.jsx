@@ -11,7 +11,7 @@ import DATA from '../../data/fc27.json'
  * Les 3 spécialisations de l'archétype, une par ligne :
  * icône du PlayStyle+ débloqué // stat 1 // stat 2 // stat 3 // prix en AP.
  */
-export default function ChoixSpecialisation({ arche, stats, restant, deja, onChoisir, onFermer }) {
+export default function SpecialisationPanel({ arche, stats, restant, deja, onChoisir, onFermer }) {
   useEffect(() => {
     const esc = (e) => e.key === 'Escape' && onFermer()
     window.addEventListener('keydown', esc)

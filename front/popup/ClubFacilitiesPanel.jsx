@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import DATA from '../data/fc27.json'
+import DATA from '../../data/fc27.json'
 
 // Create a map from playstyle English names to French names for image lookup
 const PLAYSTYLE_MAP = Object.fromEntries(

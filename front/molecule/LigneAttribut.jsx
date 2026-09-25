@@ -1,8 +1,8 @@
 import { useRef, useCallback, useState, useEffect, useMemo } from 'react'
 import { estEtoiles, coutPoint } from '../../lib/couts.js'
 import { calculerAjustementTaillePoids } from '../../lib/taillePoids.js'
-import Etoiles from './Etoiles.jsx'
-import BonusStats from './BonusStats.jsx'
+import Etoiles from './composants/Etoiles.jsx'
+import BonusStats from './composants/BonusStats.jsx'
 
 export default function LigneAttribut({ attr, reg, valeur, cout, abordable, restant, onChange, arche, corps, bonusStats, ajustementsAffiches }) {
   const etoiles = estEtoiles(reg)

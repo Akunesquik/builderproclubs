@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { calculerAjustementTaillePoids } from '../../lib/taillePoids.js'
+import { calculerAjustementTaillePoids } from '../../../lib/taillePoids.js'
 
 export default function BonusStats({ arche, attr, corps, bonusStats }) {
     const ajustementAffichage = useMemo(() => {

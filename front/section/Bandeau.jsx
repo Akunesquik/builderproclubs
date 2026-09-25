@@ -4,20 +4,20 @@ import {
   appliquer,
   parNom,
   estDebloque,
-} from '../lib/playstyles.js'
+} from '../../lib/playstyles.js'
 import {
   appliquerSpec,
   estDebloqueeSpec,
-} from '../lib/specialisations.js'
+} from '../../lib/specialisations.js'
 
-import ChoixPlayStyle from './molecule/ChoixPlayStyle.jsx'
-import ChoixSpecialisation from './molecule/ChoixSpecialisation.jsx'
-import ClubFacilitiesPanel from './ClubFacilitiesPanel.jsx'
-import MaitrisesPanel from './MaitrisesPanel.jsx'
-import JaugePoints from './molecule/JaugePoints.jsx'
-import DATA from '../data/fc27.json'
+import PlaystylePanel from '../popup/PlaystylePanel.jsx'
+import SpecialisationPanel from '../popup/SpecialisationPanel.jsx'
+import ClubFacilitiesPanel from '../popup/ClubFacilitiesPanel.jsx'
+import MaitrisesPanel from '../popup/MaitrisesPanel.jsx'
+import JaugePoints from '../molecule/composants/JaugePoints.jsx'
+import DATA from '../../data/fc27.json'
 
-export default function PlayStylesPanel({
+export default function Bandeau({
   arche,
   stats,
   slots,
@@ -295,7 +295,7 @@ export default function PlayStylesPanel({
       {/* ==================== POPUP PLAYSTYLE ==================== */}
 
       {ouvert !== null ? (
-        <ChoixPlayStyle
+        <PlaystylePanel
         arche={arche}
         stats={stats}
         restant={restant}
@@ -311,7 +311,7 @@ export default function PlayStylesPanel({
       {/* ================== POPUP SPÉCIALISATION ====================== */}
           
       {ouvertSpec ? (
-        <ChoixSpecialisation
+        <SpecialisationPanel
           arche={arche}
           stats={stats}
           restant={restant}

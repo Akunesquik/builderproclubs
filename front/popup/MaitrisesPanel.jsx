@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import DATA from '../data/fc27.json'
+import DATA from '../../data/fc27.json'
 
 export default function MaitrisesPanel({ selections, onChange }) {
   const [ouvert, setOuvert] = useState(false)

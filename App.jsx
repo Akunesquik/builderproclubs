@@ -2,9 +2,9 @@ import { useState, useMemo, useEffect, useCallback } from 'react'
 import DATA from './data/fc27.json'
 import './styles.css'
 
-import ArchetypeSelector from './front/ArchetypeSelector.jsx'
-import CategorieAttributs from './front/molecule/CategorieAttributs.jsx'
-import PlayStylesPanel from './front/PlayStylesPanel.jsx'
+import ArchetypeSelector from './front/section/ArchetypeSelector.jsx'
+import ListeAttributs from './front/molecule/ListeAttributs.jsx'
+import Bandeau from './front/section/Bandeau.jsx'
 
 import {
   reglage,
@@ -209,7 +209,7 @@ export default function App() {
         changerArchetype={changerArchetype}
       />
 
-      <PlayStylesPanel
+      <Bandeau
         arche={arche}
         stats={stats}
         slots={slots}
@@ -230,7 +230,7 @@ export default function App() {
 
       <main className="flex flex-wrap flex-row gap-10 mt-5">
         {parCategorie.map(([cat, attrs]) => (
-          <CategorieAttributs
+          <ListeAttributs
             key={cat}
             categorie={cat}
             attributs={attrs}
