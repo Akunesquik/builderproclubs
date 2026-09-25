@@ -37,6 +37,12 @@ const corpsInitial = (arche) => ({
 })
 
 export default function App() {
+  /*
+   * ============================================================
+   * BUILD INITIAL
+   * ============================================================
+   */
+
   const depart = useMemo(() => {
     const lu = decodeBuild(window.location.hash)
 
@@ -86,6 +92,12 @@ export default function App() {
         'H',
     }
   }, [])
+
+  /*
+   * ============================================================
+   * STATES
+   * ============================================================
+   */
 
   const [archeId, setArcheId] = useState(
     depart.arche.id
@@ -152,17 +164,27 @@ export default function App() {
     if (!a) return
 
     setArcheId(id)
-    setStats(statsInitiales(a))
-    setSlots(slotsVides())
+
+    setStats(
+      statsInitiales(a)
+    )
+
+    setSlots(
+      slotsVides()
+    )
+
     setInstallations({})
-    setCorps(corpsInitial(a))
+
+    setCorps(
+      corpsInitial(a)
+    )
 
     setSpec(
       a.specialisations?.find(
         (s) => s.nom === 'Aucune'
       ) ||
-        a.specialisations?.[0] ||
-        null
+      a.specialisations?.[0] ||
+      null
     )
 
     setMaitrises({})
@@ -175,17 +197,26 @@ export default function App() {
    */
 
   function reinitialiser() {
-    setStats(statsInitiales(arche))
-    setSlots(slotsVides())
+    setStats(
+      statsInitiales(arche)
+    )
+
+    setSlots(
+      slotsVides()
+    )
+
     setInstallations({})
-    setCorps(corpsInitial(arche))
+
+    setCorps(
+      corpsInitial(arche)
+    )
 
     setSpec(
       arche.specialisations?.find(
         (s) => s.nom === 'Aucune'
       ) ||
-        arche.specialisations?.[0] ||
-        null
+      arche.specialisations?.[0] ||
+      null
     )
 
     setMaitrises({})
@@ -214,7 +245,9 @@ export default function App() {
   )
 
   const budget = budgetNiveau(niveau)
-  const restant = budget - depenses
+
+  const restant =
+    budget - depenses
 
   /*
    * ============================================================
@@ -266,12 +299,12 @@ export default function App() {
    * ============================================================
    * CALCUL DES BONUS / MALUS
    *
-   * Cette partie reprend la logique existante du projet :
+   * Sources :
    * - maîtrises
    * - installations
    *
-   * L'ajustement taille / poids est calculé séparément,
-   * directement dans le classement.
+   * L'ajustement taille / poids est calculé
+   * séparément dans le classement.
    * ============================================================
    */
 
@@ -291,18 +324,24 @@ export default function App() {
 
         if (!maitrise) return
 
-        niveaux.forEach((niveauMaitrise) => {
-          const bonus =
-            maitrise[String(niveauMaitrise)] || []
+        niveaux.forEach(
+          (niveauMaitrise) => {
+            const bonus =
+              maitrise[
+                String(niveauMaitrise)
+              ] || []
 
-          bonus.forEach(
-            ({ attribut, gain }) => {
-              nouveauxBonus[attribut] =
-                (nouveauxBonus[attribut] || 0) +
-                gain
-            }
-          )
-        })
+            bonus.forEach(
+              ({ attribut, gain }) => {
+                nouveauxBonus[attribut] =
+                  (
+                    nouveauxBonus[attribut] ||
+                    0
+                  ) + gain
+              }
+            )
+          }
+        )
       }
     )
 
@@ -312,12 +351,15 @@ export default function App() {
      * --------------------
      */
 
-    Object.entries(installations).forEach(
+    Object.entries(
+      installations
+    ).forEach(
       ([installationId, niveauInstallation]) => {
         const installation =
           DATA.installationsClub?.find(
             (inst) =>
-              inst.id === installationId
+              inst.id ===
+              installationId
           )
 
         if (!installation) return
@@ -335,14 +377,17 @@ export default function App() {
         bonusLines.forEach((line) => {
           const match = line
             .trim()
-            .match(/^(.+?)\s+\+(\d+)$/)
+            .match(
+              /^(.+?)\s+\+(\d+)$/
+            )
 
           if (!match) return
 
           const nomAttribut =
             match[1].trim()
 
-          const gain = Number(match[2])
+          const gain =
+            Number(match[2])
 
           const attribut =
             DATA.attributs.find(
@@ -353,60 +398,65 @@ export default function App() {
 
           if (!attribut) return
 
-          nouveauxBonus[attribut.id] =
-            (nouveauxBonus[attribut.id] || 0) +
-            gain
+          nouveauxBonus[
+            attribut.id
+          ] =
+            (
+              nouveauxBonus[
+                attribut.id
+              ] || 0
+            ) + gain
         })
       }
     )
 
-    setBonusStats(nouveauxBonus)
-  }, [maitrises, installations])
+    setBonusStats(
+      nouveauxBonus
+    )
+  }, [
+    maitrises,
+    installations,
+  ])
 
   /*
    * ============================================================
    * CLASSEMENTS DES ATTRIBUTS
-   * ============================================================
    *
-   * Deux modes :
+   * Le classement tient maintenant compte de la STAT ACTUELLE
+   * du build.
    *
-   * 1. BRUT
-   *    Le bonus/malus est ignoré.
+   * Exemple :
    *
-   *    Exemple :
-   *    MIN 60 → 80
-   *    = coût de 60 à 80
+   * Vitesse actuelle = 84
    *
-   * 2. EFFECTIF
-   *    Le bonus/malus est pris en compte.
+   * ACTUEL → 90
    *
-   *    Exemple :
-   *    MIN 60
-   *    Bonus +5
-   *    Cible 80
+   * Le coût calculé est donc :
    *
-   *    Il suffit alors d'investir jusqu'à 75.
+   * 84 → 90
    *
-   * Les PlayStyles ne passent PAS par ce calcul.
+   * et non plus :
+   *
+   * MIN → 90
+   *
+   * Le classement est donc dynamique lorsque le joueur
+   * modifie ses attributs.
    * ============================================================
    */
 
   const classementsAttributs = useMemo(() => {
-    const attributs = attributsVisibles(arche)
+    const attributs =
+      attributsVisibles(arche)
 
     /*
      * ----------------------------------------------------------
-     * BONUS / MALUS EFFECTIF D'UN ATTRIBUT
+     * BONUS / MALUS EFFECTIF
      * ----------------------------------------------------------
-     *
-     * Même logique que LigneAttribut :
-     *
-     * taille/poids
-     * +
-     * bonus maîtrise / installation
      */
 
-    const obtenirAjustement = (attr) => {
+    const obtenirAjustement = (
+      attr
+    ) => {
       const taillePoids =
         calculerAjustementTaillePoids({
           attr,
@@ -425,7 +475,58 @@ export default function App() {
 
     /*
      * ----------------------------------------------------------
-     * CLASSEMENT SANS BONUS / MALUS
+     * STAT ACTUELLE
+     * ----------------------------------------------------------
+     */
+
+    const obtenirStatActuelle = (
+      attr
+    ) => {
+      const r =
+        reglage(
+          arche,
+          attr.id
+        )
+
+      return (
+        stats?.[attr.id] ??
+        r.base
+      )
+    }
+
+    /*
+     * ----------------------------------------------------------
+     * CALCUL DU COÛT RESTANT
+     * ----------------------------------------------------------
+     */
+
+    const calculerCoutRestant = (
+      attr,
+      niveauActuel,
+      cible
+    ) => {
+      if (
+        niveauActuel >=
+        cible
+      ) {
+        return 0
+      }
+
+      return coutCumule(
+        arche,
+        attr.id,
+        niveauActuel,
+        cible
+      )
+    }
+
+    /*
+     * ----------------------------------------------------------
+     * CLASSEMENT BRUT
+     *
+     * Sans bonus / malus.
+     *
+     * On part de la stat actuelle du build.
      * ----------------------------------------------------------
      */
 
@@ -434,53 +535,107 @@ export default function App() {
     ) => {
       return attributs
         .map((attr) => {
-          const r = reglage(
-            arche,
-            attr.id
-          )
+          const r =
+            reglage(
+              arche,
+              attr.id
+            )
+
+          const statActuelle =
+            obtenirStatActuelle(
+              attr
+            )
 
           const cible =
             cibleType === 'max'
               ? r.max
               : Math.min(
-                  Number(cibleType),
+                  Number(
+                    cibleType
+                  ),
                   r.max
                 )
 
           /*
-           * Si l'attribut ne peut pas atteindre
-           * la cible, on l'exclut.
+           * Niveau de départ limité
+           * aux bornes de l'attribut.
            */
-          if (r.min > cible) {
-            return null
-          }
+
+          const niveauDepart =
+            Math.max(
+              r.min,
+              Math.min(
+                statActuelle,
+                r.max
+              )
+            )
 
           const cout =
-            coutCumule(
-              arche,
-              attr.id,
-              r.min,
+            calculerCoutRestant(
+              attr,
+              niveauDepart,
               cible
             )
 
           return {
             id: attr.id,
+
             nom:
               attr.nom ||
               attr.label ||
               attr.id,
-            categorie: attr.categorie,
+
+            categorie:
+              attr.categorie,
+
             min: r.min,
+
+            actuel:
+              statActuelle,
+
             max: r.max,
+
             cible,
+
+            depart:
+              niveauDepart,
+
             cout,
+
             ajustement: 0,
           }
         })
         .filter(Boolean)
         .sort((a, b) => {
-          if (a.cout !== b.cout) {
-            return a.cout - b.cout
+          /*
+           * Classement principal :
+           * coût restant.
+           */
+
+          if (
+            a.cout !==
+            b.cout
+          ) {
+            return (
+              a.cout -
+              b.cout
+            )
+          }
+
+          /*
+           * Égalité :
+           * attribut ayant la plus petite
+           * valeur actuelle en premier.
+           */
+
+          if (
+            a.actuel !==
+            b.actuel
+          ) {
+            return (
+              a.actuel -
+              b.actuel
+            )
           }
 
           return a.nom.localeCompare(
@@ -491,21 +646,10 @@ export default function App() {
 
     /*
      * ----------------------------------------------------------
-     * CLASSEMENT AVEC BONUS / MALUS
+     * CLASSEMENT EFFECTIF
+     *
+     * Avec bonus / malus.
      * ----------------------------------------------------------
-     *
-     * On cherche le PLUS PETIT niveau brut permettant
-     * d'atteindre la cible après application du bonus/malus.
-     *
-     * Exemple :
-     *
-     * MIN = 60
-     * BONUS = +5
-     * CIBLE = 80
-     *
-     * Niveau nécessaire = 75
-     *
-     * Coût = coût 60 → 75
      */
 
     const construireClassementEffectif = (
@@ -513,92 +657,195 @@ export default function App() {
     ) => {
       return attributs
         .map((attr) => {
-          const r = reglage(
-            arche,
-            attr.id
-          )
+          const r =
+            reglage(
+              arche,
+              attr.id
+            )
+
+          const statActuelle =
+            obtenirStatActuelle(
+              attr
+            )
+
+          const ajustement =
+            obtenirAjustement(
+              attr
+            )
+
+          const valeurEffectiveActuelle =
+            statActuelle +
+            ajustement
 
           const cible =
             cibleType === 'max'
               ? r.max
               : Math.min(
-                  Number(cibleType),
+                  Number(
+                    cibleType
+                  ),
                   r.max
                 )
 
-          const ajustement =
-            obtenirAjustement(attr)
-
           /*
-           * On cherche le premier niveau brut
-           * qui atteint la cible finale.
+           * Si la stat effective actuelle
+           * atteint déjà la cible :
+           *
+           * coût = 0
            */
 
-          let niveauNecessaire = null
-
-          for (
-            let niveau = r.min;
-            niveau <= r.max;
-            niveau++
+          if (
+            valeurEffectiveActuelle >=
+            cible
           ) {
-            const valeurFinale =
-              niveau + ajustement
+            return {
+              id: attr.id,
 
-            if (
-              valeurFinale >= cible
-            ) {
-              niveauNecessaire = niveau
-              break
+              nom:
+                attr.nom ||
+                attr.label ||
+                attr.id,
+
+              categorie:
+                attr.categorie,
+
+              min: r.min,
+
+              actuel:
+                statActuelle,
+
+              actuelEffectif:
+                valeurEffectiveActuelle,
+
+              max: r.max,
+
+              cible,
+
+              depart:
+                statActuelle,
+
+              niveauNecessaire:
+                statActuelle,
+
+              cout: 0,
+
+              ajustement,
             }
           }
 
           /*
-           * Impossible d'atteindre la cible
-           * avec le bonus/malus actuel.
+           * Niveau brut nécessaire pour
+           * atteindre la cible avec le bonus.
+           *
+           * Exemple :
+           *
+           * cible = 90
+           * bonus = +5
+           *
+           * niveau nécessaire = 85
+           */
+
+          const niveauNecessaire =
+            Math.max(
+              r.min,
+              cible -
+                ajustement
+            )
+
+          /*
+           * Impossible d'atteindre la cible.
            */
 
           if (
-            niveauNecessaire === null
+            niveauNecessaire >
+            r.max
           ) {
             return null
           }
 
-          const cout =
-            coutCumule(
-              arche,
-              attr.id,
+          /*
+           * Départ = stat actuelle.
+           */
+
+          const niveauDepart =
+            Math.max(
               r.min,
+              Math.min(
+                statActuelle,
+                r.max
+              )
+            )
+
+          const cout =
+            calculerCoutRestant(
+              attr,
+              niveauDepart,
               niveauNecessaire
             )
 
           return {
             id: attr.id,
+
             nom:
               attr.nom ||
               attr.label ||
               attr.id,
-            categorie: attr.categorie,
+
+            categorie:
+              attr.categorie,
+
             min: r.min,
+
+            actuel:
+              statActuelle,
+
+            actuelEffectif:
+              valeurEffectiveActuelle,
+
             max: r.max,
 
-            /*
-             * Valeur brute réellement nécessaire
-             */
             niveauNecessaire,
 
-            /*
-             * Valeur finale atteinte
-             */
             cible,
 
+            depart:
+              niveauDepart,
+
             cout,
+
             ajustement,
           }
         })
         .filter(Boolean)
         .sort((a, b) => {
-          if (a.cout !== b.cout) {
-            return a.cout - b.cout
+          /*
+           * Classement par AP restant.
+           */
+
+          if (
+            a.cout !==
+            b.cout
+          ) {
+            return (
+              a.cout -
+              b.cout
+            )
+          }
+
+          /*
+           * Égalité :
+           * valeur actuelle la plus basse
+           * en premier.
+           */
+
+          if (
+            a.actuel !==
+            b.actuel
+          ) {
+            return (
+              a.actuel -
+              b.actuel
+            )
           }
 
           return a.nom.localeCompare(
@@ -606,6 +853,12 @@ export default function App() {
           )
         })
     }
+
+    /*
+     * ----------------------------------------------------------
+     * RESULTAT
+     * ----------------------------------------------------------
+     */
 
     return {
       brut: {
@@ -656,6 +909,7 @@ export default function App() {
     arche,
     corps,
     bonusStats,
+    stats,
   ])
 
   /*
@@ -664,15 +918,24 @@ export default function App() {
    * ============================================================
    */
 
-  function ajuster(attrId, sens) {
+  function ajuster(
+    attrId,
+    sens
+  ) {
     setStats((s) => {
-      const r = reglage(
-        arche,
-        attrId
-      )
+      const r =
+        reglage(
+          arche,
+          attrId
+        )
 
       const v =
-        s[attrId] ?? r.base
+        s[attrId] ??
+        r.base
+
+      /*
+       * +1
+       */
 
       if (sens > 0) {
         if (
@@ -687,17 +950,25 @@ export default function App() {
 
         return {
           ...s,
-          [attrId]: v + 1,
+          [attrId]:
+            v + 1,
         }
       }
 
-      if (v <= r.min) {
+      /*
+       * -1
+       */
+
+      if (
+        v <= r.min
+      ) {
         return s
       }
 
       return {
         ...s,
-        [attrId]: v - 1,
+        [attrId]:
+          v - 1,
       }
     })
   }
@@ -728,7 +999,9 @@ export default function App() {
         archetypes={
           DATA.archetypes
         }
-        archeId={archeId}
+        archeId={
+          archeId
+        }
         changerArchetype={
           changerArchetype
         }
@@ -749,25 +1022,42 @@ export default function App() {
         onInstallations={
           setInstallations
         }
-        depenses={depenses}
-        budget={budget}
-        niveau={niveau}
-        onNiveau={setNiveau}
-        maitrises={maitrises}
+        depenses={
+          depenses
+        }
+        budget={
+          budget
+        }
+        niveau={
+          niveau
+        }
+        onNiveau={
+          setNiveau
+        }
+        maitrises={
+          maitrises
+        }
         setMaitrises={
           setMaitrises
         }
-        corps={corps}
-        setCorps={setCorps}
-        genre={genre}
-        setGenre={setGenre}
+        corps={
+          corps
+        }
+        setCorps={
+          setCorps
+        }
+        genre={
+          genre
+        }
+        setGenre={
+          setGenre
+        }
         bonusStats={
           bonusStats
         }
       />
 
       <main className="flex flex-wrap flex-row gap-10 mt-5">
-
         {parCategorie.map(
           ([cat, attrs]) => (
             <ListeAttributs
@@ -793,7 +1083,6 @@ export default function App() {
             />
           )
         )}
-
       </main>
 
       {/* ========================================================
@@ -804,7 +1093,9 @@ export default function App() {
         classements={
           classementsAttributs
         }
-        arche={arche}
+        arche={
+          arche
+        }
       />
 
       <div
@@ -828,10 +1119,13 @@ export default function App() {
       </div>
 
       <footer className="pied">
-        Fait par <code>Klebar</code> et <code>Loup</code> (Symphonyyyyyyyyyyy)
+        Fait par <code>Klebar</code> et{' '}
+        <code>Loup</code>{' '}
+        (Symphonyyyyyyyyyyy)
         <br />
         Site non affilié à EA Sports.
       </footer>
+
     </div>
   )
 }
