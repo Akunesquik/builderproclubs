@@ -21,6 +21,7 @@ import { NB_SLOTS } from './lib/playstyles.js'
 import { encodeBuild, decodeBuild } from './lib/partage.js'
 
 import Header from './front/section/Header.jsx'
+import InfosPro from './front/section/InfosPro.jsx'
 
 const slotsVides = () => Array(NB_SLOTS).fill(null)
 
@@ -375,13 +376,18 @@ export default function App() {
         onNiveau={setNiveau}
         maitrises={maitrises}
         setMaitrises={setMaitrises}
+        
+      />
+      <InfosPro
+        arche={arche}
+        stats={stats}
         corps={corps}
         setCorps={setCorps}
         genre={genre}
         setGenre={setGenre}
         bonusStats={bonusStats}
-      />
 
+      />
       <main className="flex flex-wrap flex-row gap-10 mt-5">
         {parCategorie.map(
           ([cat, attrs]) => (
