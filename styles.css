@@ -1233,7 +1233,7 @@ h2 {
 /* Styles for the installations club table */
 .table-header {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr);
+  grid-template-columns: minmax(180px, 1fr) minmax(160px, 1fr) minmax(160px, 1fr) minmax(160px, 1fr);
   gap: 0 20px;
   padding: 12px 0;
   border-bottom: 1px solid var(--filet);
@@ -1244,7 +1244,7 @@ h2 {
 
 .table-row {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr);
+  grid-template-columns: minmax(180px, 1fr) minmax(160px, 1fr) minmax(160px, 1fr) minmax(160px, 1fr);
   gap: 0 20px;
   padding: 12px 0;
   border-bottom: 1px solid #1d2731;

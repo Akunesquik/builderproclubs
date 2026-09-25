@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import DATA from '../data/fc27.json'
 
+// Create a map from playstyle English names to French names for image lookup
+const PLAYSTYLE_MAP = Object.fromEntries(
+  DATA.playStyles.map(ps => [ps.nom, ps.nomFr])
+)
+
 export default function ClubFacilitiesPanel({ selections, onChange }) {
   const [ouvert, setOuvert] = useState(false)
 
@@ -75,7 +80,7 @@ export default function ClubFacilitiesPanel({ selections, onChange }) {
       {ouvert ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/75" onClick={() => setOuvert(false)} role="presentation">
           <div
-            className="relative w-[800px] max-w-full p-4.5  border border-filet-fort rounded modale"
+            className="relative w-[1100px] max-w-[95vw] p-4.5  border border-filet-fort rounded modale"
             role="dialog"
             aria-modal="true"
             aria-label="Installations du club"
@@ -92,9 +97,9 @@ export default function ClubFacilitiesPanel({ selections, onChange }) {
               {/* Table header */}
               <div className="table-header">
                 <div className="table-cell-header">Installation</div>
-                <div className="table-cell-header">Niveau 1</div>
-                <div className="table-cell-header">Niveau 2</div>
-                <div className="table-cell-header">Niveau 3</div>
+                <div className="table-cell-header text-center" style={{ textAlign: 'center' }}>Niveau 1</div>
+                <div className="table-cell-header text-center" style={{ textAlign: 'center' }}>Niveau 2</div>
+                <div className="table-cell-header text-center" style={{ textAlign: 'center' }}>Niveau 3</div>
               </div>
 
               {/* Table rows */}
@@ -112,40 +117,73 @@ export default function ClubFacilitiesPanel({ selections, onChange }) {
                       const niveauData = installation.niveaux[niveau - 1]
                       const bonusText = niveauData ? niveauData.bonus : '-'
                       const costText = niveauData ? (niveauData.cost ?? 0).toLocaleString() : '0'
+                      const styleJeu = niveauData?.styleJeu
 
                       const bonusLines = bonusText.split('//')
 
                       return (
                         <button
                           key={niveau}
-                          className={`table-cell niveau-bonus border rounded transition-all ${
+                          className={`table-cell niveau-bonus border rounded transition-all overflow-hidden ${
                             isSelected
                               ? 'border-green-400 bg-green-400/10'
                               : 'border-transparent hover:border-filet-fort'
                           }`}
                           onClick={() => toggleNiveau(installation.id, niveau)}
-                          title={`Niveau ${niveau}: ${costText} coûts`}
+                          title={`Niveau ${niveau}: ${costText} coûts${styleJeu ? ` — ${styleJeu}` : ''}`}
                         >
-                          {bonusLines.map((line, index) => {
-                            const match = line.trim().match(/^(.+?)\s+\+(\d+)$/)
+                          <div className="flex items-center justify-between gap-2">
+                            {/* Stats à gauche, une par ligne */}
+                            <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                              {bonusLines.map((line, index) => {
+                                const match = line.trim().match(/^(.+?)\s+\+(\d+)$/)
 
-                            let attr = line.trim()
-                            let value = ''
+                                let attr = line.trim()
+                                let value = ''
 
-                            if (match) {
-                              attr = NOM_ATTRIBUT[match[1]] ?? match[1]
-                              value = match[2]
-                            }
+                                if (match) {
+                                  attr = NOM_ATTRIBUT[match[1]] ?? match[1]
+                                  value = match[2]
+                                }
 
-                            return (
-                              <div key={index} className="bonus-line">
-                                {attr} : <span className="bonus-value">{value}</span>
+                                return (
+                                  <div key={index} className="text-xs truncate">
+                                    {attr} : <span className="font-bold text-green-400">+{value}</span>
+                                  </div>
+                                )
+                              })}
+                            </div>
+
+                            {/* Séparateur + logo du playstyle, à droite, centré verticalement */}
+                            {styleJeu ? (
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <span className="text-sm font-bold text-filet-fort">+</span>
+                                {(() => {
+                                  const frenchName = PLAYSTYLE_MAP[styleJeu]
+                                  if (!frenchName) return null
+                                  const silverPath = `${import.meta.env.BASE_URL}img/playstyles/silver/${frenchName}.png`
+                                  const goldPath = `${import.meta.env.BASE_URL}img/playstyles/gold/${frenchName}.png`
+                                  return (
+                                    <img
+                                      src={silverPath}
+                                      alt={styleJeu}
+                                      className="h-8 w-8"
+                                      onError={(e) => {
+                                        if (e.target.src.includes('/silver/')) {
+                                          e.target.src = goldPath
+                                        } else {
+                                          e.target.style.display = 'none'
+                                        }
+                                      }}
+                                    />
+                                  )
+                                })()}
                               </div>
-                            )
-                          })}
+                            ) : null}
+                          </div>
 
-                          <div className="cost-indicator">
-                            +{costText}
+                          <div className="cost-indicator text-center mt-2">
+                            Coût : {costText}
                           </div>
                         </button>
                       )
