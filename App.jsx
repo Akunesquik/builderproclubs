@@ -13,6 +13,7 @@ import { calculerAjustementTaillePoids } from './lib/taillePoids.js'
 import { NB_SLOTS } from './lib/playstyles.js'
 import { encodeBuild, decodeBuild } from './lib/partage.js'
 import Header from './front/section/Header.jsx'
+import InfosPro from './front/section/InfosPro.jsx'
 
 const slotsVides = () => Array(NB_SLOTS).fill(null)
 const corpsInitial = (arche) => ({
@@ -341,6 +342,16 @@ export default function App() {
         genre={genre}
         setGenre={setGenre}
         bonusStats={bonusStats}
+      />
+
+      <InfosPro
+        arche={arche}
+        corps={corps}
+        setCorps={setCorps}
+        stats={stats}
+        bonusStats={bonusStats}
+        genre={genre}
+        setGenre={setGenre}
       />
 
       <main className="flex flex-wrap flex-row gap-10 mt-5">
