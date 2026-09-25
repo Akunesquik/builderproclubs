@@ -66,6 +66,10 @@ export default function ClubFacilitiesPanel({ selections, onChange }) {
     })
   }
 
+  function deselectionnerTout() {
+    onChange({})
+  }
+
   return (
     <>
       <button type="button" onClick={() => setOuvert(true)} className="club-facilities">
@@ -87,10 +91,22 @@ export default function ClubFacilitiesPanel({ selections, onChange }) {
             onClick={(event) => event.stopPropagation()}
           >
             <header className="flex items-center justify-between gap-4 pb-3 border-b border-filet">
-              <h2 className="text-xl font-semibold">Installations du club</h2>
-              <div className="total-cost flex items-center gap-2">
-                Coût total: <strong className="whitespace-nolength">{totalCost.toLocaleString()} </strong>
+              <div className='flex-1'>
+                <h2 className="text-xl font-semibold">Installations du club</h2>
               </div>
+              <div className='flex gap-2'>
+                  <button
+                    type="button"
+                    onClick={deselectionnerTout}
+                    className="border border-filet-fort rounded px-3 py-1 hover:bg-white/10"
+                  >
+                    Tout désélectionner
+                  </button>
+                <div className="total-cost flex items-center gap-2">
+                  Coût total: <strong className="whitespace-nolength">{totalCost.toLocaleString()} </strong>
+                </div>
+              </div>
+             
               <button type="button" onClick={() => setOuvert(false)} aria-label="Fermer" className="text-3xl">×</button>
             </header>
             <div className="club-facilities-liste">

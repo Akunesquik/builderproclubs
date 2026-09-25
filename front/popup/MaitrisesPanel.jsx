@@ -67,6 +67,39 @@ export default function MaitrisesPanel({ selections, onChange }) {
     })
   }
 
+  function togglePalier(niveau) {
+    onChange((prev) => {
+      const nouveau = { ...(prev || {}) }
+
+      const tousSelectionnes = archetypes.every((archetype) =>
+        (nouveau[archetype.id] || []).includes(niveau)
+      )
+
+      archetypes.forEach((archetype) => {
+        const niveauxActuels = nouveau[archetype.id] || []
+
+        if (tousSelectionnes) {
+          const nouveauxNiveaux = niveauxActuels.filter(
+            (n) => n !== niveau
+          )
+
+          if (nouveauxNiveaux.length === 0) {
+            delete nouveau[archetype.id]
+          } else {
+            nouveau[archetype.id] = nouveauxNiveaux
+          }
+        } else if (!niveauxActuels.includes(niveau)) {
+          nouveau[archetype.id] = [
+            ...niveauxActuels,
+            niveau,
+          ].sort((a, b) => a - b)
+        }
+      })
+
+      return nouveau
+    })
+  }
+
   return (
     <>
       {/* Bouton Maîtrises */}
@@ -101,19 +134,25 @@ export default function MaitrisesPanel({ selections, onChange }) {
             onClick={(event) => event.stopPropagation()}
           >
             {/* Header */}
-            <header className="flex items-center justify-between gap-4 pb-3 border-b border-filet">
-              <h2 className="text-xl font-semibold">
-                Maîtrises
-              </h2>
+            <header className="flex flex-col gap-4 pb-3 border-b border-filet">
+              <div className='flex items-center justify-between gap-4 w-full'>
+                <h2 className="text-xl font-semibold">
+                  Maîtrises
+                </h2>
 
-              <button
-                type="button"
-                onClick={() => setOuvert(false)}
-                aria-label="Fermer"
-                className="text-3xl"
-              >
-                ×
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setOuvert(false)}
+                  aria-label="Fermer"
+                  className="text-3xl"
+                >
+                  ×
+                </button>
+              </div>
+              <p className='text-sm'>
+                Vous pouvez cliquer sur Niveau 'nombre' pour valider toutes les maitrises de ce palier
+              </p>
+              
             </header>
 
             {/* Tableau */}
@@ -125,14 +164,27 @@ export default function MaitrisesPanel({ selections, onChange }) {
                   Archétype
                 </div>
 
-                {niveauxToShow.map((niveau) => (
-                  <div
-                    key={niveau}
-                    className="table-cell-header"
-                  >
-                    Niveau {niveau}
-                  </div>
-                ))}
+                {niveauxToShow.map((niveau) => {
+                  const tousSelectionnes = archetypes.every((archetype) =>
+                    (selections?.[archetype.id] || []).includes(niveau)
+                  )
+
+                  return (
+                    <div key={niveau} className="table-cell-header p-1 flex justify-start">
+                      <button
+                        type="button"
+                        onClick={() => togglePalier(niveau)}
+                        className={`w-full h-full rounded border transition-all p-4 ${
+                          tousSelectionnes
+                            ? 'border-green-400 bg-green-400/10'
+                            : 'border-transparent hover:border-filet-fort'
+                        }`}
+                      >
+                        Niveau {niveau}
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
 
               {/* Archétypes */}
