@@ -7,15 +7,22 @@ import './styles.css'
 import ArchetypeSelector from './front/section/ArchetypeSelector.jsx'
 import ListeAttributs from './front/molecule/ListeAttributs.jsx'
 import Bandeau from './front/section/Bandeau.jsx'
+import ClassementsAttributs from './front/section/ClassementsAttributs.jsx'
 
 import {
   reglage,
   coutPoint,
+  coutCumule,
   totalDepense,
   statsInitiales,
   budgetNiveau,
   attributsParCategorie,
+  attributsVisibles,
 } from './lib/couts.js'
+
+import {
+  calculerAjustementTaillePoids,
+} from './lib/taillePoids.js'
 
 import { NB_SLOTS } from './lib/playstyles.js'
 import { encodeBuild, decodeBuild } from './lib/partage.js'
@@ -121,9 +128,21 @@ export default function App() {
   const [ajustementsAffiches, setAjustementsAffiches] =
     useState(false)
 
+  /*
+   * ============================================================
+   * ARCHETYPE ACTUEL
+   * ============================================================
+   */
+
   const arche = DATA.archetypes.find(
     (a) => a.id === archeId
   )
+
+  /*
+   * ============================================================
+   * CHANGEMENT D'ARCHETYPE
+   * ============================================================
+   */
 
   const changerArchetype = useCallback((id) => {
     const a = DATA.archetypes.find(
@@ -149,6 +168,12 @@ export default function App() {
     setMaitrises({})
   }, [])
 
+  /*
+   * ============================================================
+   * REINITIALISATION
+   * ============================================================
+   */
+
   function reinitialiser() {
     setStats(statsInitiales(arche))
     setSlots(slotsVides())
@@ -166,10 +191,22 @@ export default function App() {
     setMaitrises({})
   }
 
+  /*
+   * ============================================================
+   * ATTRIBUTS PAR CATEGORIE
+   * ============================================================
+   */
+
   const parCategorie = useMemo(
     () => attributsParCategorie(arche),
     [arche]
   )
+
+  /*
+   * ============================================================
+   * DEPENSES DU BUILD
+   * ============================================================
+   */
 
   const depenses = useMemo(
     () => totalDepense(arche, stats),
@@ -180,8 +217,11 @@ export default function App() {
   const restant = budget - depenses
 
   /*
-   * URL de partage du build
+   * ============================================================
+   * URL DE PARTAGE DU BUILD
+   * ============================================================
    */
+
   const lien = useMemo(
     () =>
       encodeBuild({
@@ -209,8 +249,11 @@ export default function App() {
   )
 
   /*
-   * Met à jour l'URL dès que le build change
+   * ============================================================
+   * METTRE A JOUR L'URL
+   * ============================================================
    */
+
   useEffect(() => {
     window.history.replaceState(
       null,
@@ -220,15 +263,26 @@ export default function App() {
   }, [lien])
 
   /*
-   * Calcul des bonus provenant des maîtrises
-   * et des installations
+   * ============================================================
+   * CALCUL DES BONUS / MALUS
+   *
+   * Cette partie reprend la logique existante du projet :
+   * - maîtrises
+   * - installations
+   *
+   * L'ajustement taille / poids est calculé séparément,
+   * directement dans le classement.
+   * ============================================================
    */
+
   useEffect(() => {
     const nouveauxBonus = {}
 
-    // --------------------
-    // MAÎTRISES
-    // --------------------
+    /*
+     * --------------------
+     * MAÎTRISES
+     * --------------------
+     */
 
     Object.entries(maitrises).forEach(
       ([archetypeId, niveaux]) => {
@@ -237,9 +291,9 @@ export default function App() {
 
         if (!maitrise) return
 
-        niveaux.forEach((niveau) => {
+        niveaux.forEach((niveauMaitrise) => {
           const bonus =
-            maitrise[String(niveau)] || []
+            maitrise[String(niveauMaitrise)] || []
 
           bonus.forEach(
             ({ attribut, gain }) => {
@@ -252,12 +306,14 @@ export default function App() {
       }
     )
 
-    // --------------------
-    // INSTALLATIONS
-    // --------------------
+    /*
+     * --------------------
+     * INSTALLATIONS
+     * --------------------
+     */
 
     Object.entries(installations).forEach(
-      ([installationId, niveau]) => {
+      ([installationId, niveauInstallation]) => {
         const installation =
           DATA.installationsClub?.find(
             (inst) =>
@@ -267,7 +323,9 @@ export default function App() {
         if (!installation) return
 
         const niveauData =
-          installation.niveaux[niveau - 1]
+          installation.niveaux[
+            niveauInstallation - 1
+          ]
 
         if (!niveauData?.bonus) return
 
@@ -305,14 +363,324 @@ export default function App() {
     setBonusStats(nouveauxBonus)
   }, [maitrises, installations])
 
+  /*
+   * ============================================================
+   * CLASSEMENTS DES ATTRIBUTS
+   * ============================================================
+   *
+   * Deux modes :
+   *
+   * 1. BRUT
+   *    Le bonus/malus est ignoré.
+   *
+   *    Exemple :
+   *    MIN 60 → 80
+   *    = coût de 60 à 80
+   *
+   * 2. EFFECTIF
+   *    Le bonus/malus est pris en compte.
+   *
+   *    Exemple :
+   *    MIN 60
+   *    Bonus +5
+   *    Cible 80
+   *
+   *    Il suffit alors d'investir jusqu'à 75.
+   *
+   * Les PlayStyles ne passent PAS par ce calcul.
+   * ============================================================
+   */
+
+  const classementsAttributs = useMemo(() => {
+    const attributs = attributsVisibles(arche)
+
+    /*
+     * ----------------------------------------------------------
+     * BONUS / MALUS EFFECTIF D'UN ATTRIBUT
+     * ----------------------------------------------------------
+     *
+     * Même logique que LigneAttribut :
+     *
+     * taille/poids
+     * +
+     * bonus maîtrise / installation
+     */
+
+    const obtenirAjustement = (attr) => {
+      const taillePoids =
+        calculerAjustementTaillePoids({
+          attr,
+          corps,
+          arche,
+        })
+
+      const bonusMaitriseInstallation =
+        bonusStats?.[attr.id] || 0
+
+      return (
+        taillePoids +
+        bonusMaitriseInstallation
+      )
+    }
+
+    /*
+     * ----------------------------------------------------------
+     * CLASSEMENT SANS BONUS / MALUS
+     * ----------------------------------------------------------
+     */
+
+    const construireClassementBrut = (
+      cibleType
+    ) => {
+      return attributs
+        .map((attr) => {
+          const r = reglage(
+            arche,
+            attr.id
+          )
+
+          const cible =
+            cibleType === 'max'
+              ? r.max
+              : Math.min(
+                  Number(cibleType),
+                  r.max
+                )
+
+          /*
+           * Si l'attribut ne peut pas atteindre
+           * la cible, on l'exclut.
+           */
+          if (r.min > cible) {
+            return null
+          }
+
+          const cout =
+            coutCumule(
+              arche,
+              attr.id,
+              r.min,
+              cible
+            )
+
+          return {
+            id: attr.id,
+            nom:
+              attr.nom ||
+              attr.label ||
+              attr.id,
+            categorie: attr.categorie,
+            min: r.min,
+            max: r.max,
+            cible,
+            cout,
+            ajustement: 0,
+          }
+        })
+        .filter(Boolean)
+        .sort((a, b) => {
+          if (a.cout !== b.cout) {
+            return a.cout - b.cout
+          }
+
+          return a.nom.localeCompare(
+            b.nom
+          )
+        })
+    }
+
+    /*
+     * ----------------------------------------------------------
+     * CLASSEMENT AVEC BONUS / MALUS
+     * ----------------------------------------------------------
+     *
+     * On cherche le PLUS PETIT niveau brut permettant
+     * d'atteindre la cible après application du bonus/malus.
+     *
+     * Exemple :
+     *
+     * MIN = 60
+     * BONUS = +5
+     * CIBLE = 80
+     *
+     * Niveau nécessaire = 75
+     *
+     * Coût = coût 60 → 75
+     */
+
+    const construireClassementEffectif = (
+      cibleType
+    ) => {
+      return attributs
+        .map((attr) => {
+          const r = reglage(
+            arche,
+            attr.id
+          )
+
+          const cible =
+            cibleType === 'max'
+              ? r.max
+              : Math.min(
+                  Number(cibleType),
+                  r.max
+                )
+
+          const ajustement =
+            obtenirAjustement(attr)
+
+          /*
+           * On cherche le premier niveau brut
+           * qui atteint la cible finale.
+           */
+
+          let niveauNecessaire = null
+
+          for (
+            let niveau = r.min;
+            niveau <= r.max;
+            niveau++
+          ) {
+            const valeurFinale =
+              niveau + ajustement
+
+            if (
+              valeurFinale >= cible
+            ) {
+              niveauNecessaire = niveau
+              break
+            }
+          }
+
+          /*
+           * Impossible d'atteindre la cible
+           * avec le bonus/malus actuel.
+           */
+
+          if (
+            niveauNecessaire === null
+          ) {
+            return null
+          }
+
+          const cout =
+            coutCumule(
+              arche,
+              attr.id,
+              r.min,
+              niveauNecessaire
+            )
+
+          return {
+            id: attr.id,
+            nom:
+              attr.nom ||
+              attr.label ||
+              attr.id,
+            categorie: attr.categorie,
+            min: r.min,
+            max: r.max,
+
+            /*
+             * Valeur brute réellement nécessaire
+             */
+            niveauNecessaire,
+
+            /*
+             * Valeur finale atteinte
+             */
+            cible,
+
+            cout,
+            ajustement,
+          }
+        })
+        .filter(Boolean)
+        .sort((a, b) => {
+          if (a.cout !== b.cout) {
+            return a.cout - b.cout
+          }
+
+          return a.nom.localeCompare(
+            b.nom
+          )
+        })
+    }
+
+    return {
+      brut: {
+        minMax:
+          construireClassementBrut(
+            'max'
+          ),
+
+        min80:
+          construireClassementBrut(
+            80
+          ),
+
+        min85:
+          construireClassementBrut(
+            85
+          ),
+
+        min90:
+          construireClassementBrut(
+            90
+          ),
+      },
+
+      effectif: {
+        minMax:
+          construireClassementEffectif(
+            'max'
+          ),
+
+        min80:
+          construireClassementEffectif(
+            80
+          ),
+
+        min85:
+          construireClassementEffectif(
+            85
+          ),
+
+        min90:
+          construireClassementEffectif(
+            90
+          ),
+      },
+    }
+  }, [
+    arche,
+    corps,
+    bonusStats,
+  ])
+
+  /*
+   * ============================================================
+   * MODIFICATION D'UN ATTRIBUT
+   * ============================================================
+   */
+
   function ajuster(attrId, sens) {
     setStats((s) => {
-      const r = reglage(arche, attrId)
-      const v = s[attrId] ?? r.base
+      const r = reglage(
+        arche,
+        attrId
+      )
+
+      const v =
+        s[attrId] ?? r.base
 
       if (sens > 0) {
         if (
-          coutPoint(arche, attrId, v) === null
+          coutPoint(
+            arche,
+            attrId,
+            v
+          ) === null
         ) {
           return s
         }
@@ -334,6 +702,12 @@ export default function App() {
     })
   }
 
+  /*
+   * ============================================================
+   * RENDER
+   * ============================================================
+   */
+
   return (
     <div className="app">
 
@@ -344,12 +718,16 @@ export default function App() {
         setAjustementsAffiches={
           setAjustementsAffiches
         }
-        reinitialiser={reinitialiser}
+        reinitialiser={
+          reinitialiser
+        }
         lien={lien}
       />
 
       <ArchetypeSelector
-        archetypes={DATA.archetypes}
+        archetypes={
+          DATA.archetypes
+        }
         archeId={archeId}
         changerArchetype={
           changerArchetype
@@ -365,7 +743,9 @@ export default function App() {
         onSlots={setSlots}
         spec={spec}
         onSpec={setSpec}
-        installations={installations}
+        installations={
+          installations
+        }
         onInstallations={
           setInstallations
         }
@@ -374,15 +754,20 @@ export default function App() {
         niveau={niveau}
         onNiveau={setNiveau}
         maitrises={maitrises}
-        setMaitrises={setMaitrises}
+        setMaitrises={
+          setMaitrises
+        }
         corps={corps}
         setCorps={setCorps}
         genre={genre}
         setGenre={setGenre}
-        bonusStats={bonusStats}
+        bonusStats={
+          bonusStats
+        }
       />
 
       <main className="flex flex-wrap flex-row gap-10 mt-5">
+
         {parCategorie.map(
           ([cat, attrs]) => (
             <ListeAttributs
@@ -392,9 +777,13 @@ export default function App() {
               arche={arche}
               stats={stats}
               restant={restant}
-              onAjuster={ajuster}
+              onAjuster={
+                ajuster
+              }
               corps={corps}
-              bonusStats={bonusStats}
+              bonusStats={
+                bonusStats
+              }
               setBonusStats={
                 setBonusStats
               }
@@ -404,7 +793,19 @@ export default function App() {
             />
           )
         )}
+
       </main>
+
+      {/* ========================================================
+          CLASSEMENTS DES ATTRIBUTS
+          ======================================================== */}
+
+      <ClassementsAttributs
+        classements={
+          classementsAttributs
+        }
+        arche={arche}
+      />
 
       <div
         className="ap-mobile"
@@ -412,7 +813,9 @@ export default function App() {
       >
         <span
           className={
-            restant < 0 ? 'negatif' : ''
+            restant < 0
+              ? 'negatif'
+              : ''
           }
         >
           {restant}
@@ -425,12 +828,10 @@ export default function App() {
       </div>
 
       <footer className="pied">
-        Fait par <code>Klebar</code> et{' '}
-        <code>Loup</code>
+        Fait par <code>Klebar</code> et <code>Loup</code> (Symphonyyyyyyyyyyy)
         <br />
         Site non affilié à EA Sports.
       </footer>
-
     </div>
   )
 }
