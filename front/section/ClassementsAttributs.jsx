@@ -1,10 +1,202 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+
+import {
+  reglage,
+  coutCumule,
+  attributsVisibles,
+} from '../../lib/couts.js'
+
+import { calculerAjustementTaillePoids } from '../../lib/taillePoids.js'
 
 export default function ClassementsAttributs({
-  classements,
   arche,
+  corps,
+  stats,
+  bonusStats,
 }) {
   const [avecBonus, setAvecBonus] = useState(false)
+
+  const classements = useMemo(() => {
+    const attributs = attributsVisibles(arche)
+
+    const obtenirAjustement = (attr) => {
+      const taillePoids = calculerAjustementTaillePoids({
+        attr,
+        corps,
+        arche,
+      })
+
+      const bonusMaitriseInstallation =
+        bonusStats?.[attr.id] || 0
+
+      return taillePoids + bonusMaitriseInstallation
+    }
+
+    const obtenirStatActuelle = (attr) => {
+      const r = reglage(arche, attr.id)
+      return stats?.[attr.id] ?? r.base
+    }
+
+    const calculerCoutRestant = (
+      attr,
+      niveauActuel,
+      cible
+    ) => {
+      if (niveauActuel >= cible) return 0
+
+      return coutCumule(
+        arche,
+        attr.id,
+        niveauActuel,
+        cible
+      )
+    }
+
+    const construireClassementBrut = (cibleType) => {
+      return attributs
+        .map((attr) => {
+          const r = reglage(arche, attr.id)
+          const statActuelle = obtenirStatActuelle(attr)
+
+          const cible =
+            cibleType === 'max'
+              ? r.max
+              : Math.min(Number(cibleType), r.max)
+
+          const niveauDepart = Math.max(
+            r.min,
+            Math.min(statActuelle, r.max)
+          )
+
+          const cout = calculerCoutRestant(
+            attr,
+            niveauDepart,
+            cible
+          )
+
+          return {
+            id: attr.id,
+            nom: attr.nom || attr.label || attr.id,
+            categorie: attr.categorie,
+            min: r.min,
+            actuel: statActuelle,
+            max: r.max,
+            cible,
+            depart: niveauDepart,
+            cout,
+            ajustement: 0,
+          }
+        })
+        .sort((a, b) => {
+          if (a.cout !== b.cout) {
+            return a.cout - b.cout
+          }
+
+          if (a.actuel !== b.actuel) {
+            return a.actuel - b.actuel
+          }
+
+          return a.nom.localeCompare(b.nom)
+        })
+    }
+
+    const construireClassementEffectif = (cibleType) => {
+      return attributs
+        .map((attr) => {
+          const r = reglage(arche, attr.id)
+          const statActuelle = obtenirStatActuelle(attr)
+          const ajustement = obtenirAjustement(attr)
+
+          const valeurEffectiveActuelle =
+            statActuelle + ajustement
+
+          const cible =
+            cibleType === 'max'
+              ? r.max
+              : Math.min(Number(cibleType), r.max)
+
+          if (valeurEffectiveActuelle >= cible) {
+            return {
+              id: attr.id,
+              nom: attr.nom || attr.label || attr.id,
+              categorie: attr.categorie,
+              min: r.min,
+              actuel: statActuelle,
+              actuelEffectif: valeurEffectiveActuelle,
+              max: r.max,
+              cible,
+              depart: statActuelle,
+              niveauNecessaire: statActuelle,
+              cout: 0,
+              ajustement,
+            }
+          }
+
+          const niveauNecessaire = Math.max(
+            r.min,
+            cible - ajustement
+          )
+
+          if (niveauNecessaire > r.max) {
+            return null
+          }
+
+          const niveauDepart = Math.max(
+            r.min,
+            Math.min(statActuelle, r.max)
+          )
+
+          const cout = calculerCoutRestant(
+            attr,
+            niveauDepart,
+            niveauNecessaire
+          )
+
+          return {
+            id: attr.id,
+            nom: attr.nom || attr.label || attr.id,
+            categorie: attr.categorie,
+            min: r.min,
+            actuel: statActuelle,
+            actuelEffectif: valeurEffectiveActuelle,
+            max: r.max,
+            niveauNecessaire,
+            cible,
+            depart: niveauDepart,
+            cout,
+            ajustement,
+          }
+        })
+        .filter(Boolean)
+        .sort((a, b) => {
+          if (a.cout !== b.cout) {
+            return a.cout - b.cout
+          }
+
+          if (a.actuel !== b.actuel) {
+            return a.actuel - b.actuel
+          }
+
+          return a.nom.localeCompare(b.nom)
+        })
+    }
+
+    return {
+      brut: {
+        minMax: construireClassementBrut('max'),
+        min80: construireClassementBrut(80),
+        min85: construireClassementBrut(85),
+        min90: construireClassementBrut(90),
+      },
+
+      effectif: {
+        minMax: construireClassementEffectif('max'),
+        min80: construireClassementEffectif(80),
+        min85: construireClassementEffectif(85),
+        min90: construireClassementEffectif(90),
+      },
+    }
+  }, [arche, corps, bonusStats, stats])
 
   const colonnes = [
     {
@@ -28,7 +220,7 @@ export default function ClassementsAttributs({
   const cle = avecBonus ? 'effectif' : 'brut'
 
   const explication = avecBonus
-    ? "Coût en AP pour chaque attribut, en tenant compte de tes bonus/malus actuels (taille, poids, maîtrises, installations du club)."
+    ? 'Coût en AP pour chaque attribut, en tenant compte de tes bonus/malus actuels (taille, poids, maîtrises, installations du club).'
     : "Coût en AP pour amener chaque attribut de sa valeur actuelle jusqu'à la cible, sans tenir compte des bonus/malus (taille, poids, maîtrises, installations). Les moins chers en premier : c'est l'ordre le plus rentable pour dépenser tes AP."
 
   const afficherLigne = (item, index) => (
@@ -82,7 +274,9 @@ export default function ClassementsAttributs({
           <button
             type="button"
             onClick={() => setAvecBonus((v) => !v)}
-            className={`classements-toggle ${avecBonus ? 'active' : ''}`}
+            className={`classements-toggle ${
+              avecBonus ? 'active' : ''
+            }`}
             aria-pressed={avecBonus}
           >
             <span className="classements-toggle-track">
@@ -90,7 +284,9 @@ export default function ClassementsAttributs({
             </span>
 
             <span className="classements-toggle-label">
-              {avecBonus ? 'Avec bonus / malus' : 'Sans bonus / malus'}
+              {avecBonus
+                ? 'Avec bonus / malus'
+                : 'Sans bonus / malus'}
             </span>
           </button>
         </div>
@@ -106,6 +302,7 @@ export default function ClassementsAttributs({
           {avecBonus && (
             <>
               {' '}
+
               <span
                 style={{
                   color: '#f59e0b',
@@ -124,8 +321,7 @@ export default function ClassementsAttributs({
       <div className="classements-grid">
         {colonnes.map((colonne) => {
           const liste =
-            classements?.[cle]?.[colonne.id] ??
-            []
+            classements?.[cle]?.[colonne.id] ?? []
 
           return (
             <div
