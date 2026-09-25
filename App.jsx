@@ -1,1010 +1,327 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
-
 import DATA from './data/fc27.json'
-
 import './styles.css'
-
 import ArchetypeSelector from './front/section/ArchetypeSelector.jsx'
 import ListeAttributs from './front/molecule/ListeAttributs.jsx'
 import Bandeau from './front/section/Bandeau.jsx'
 import ClassementsAttributs from './front/section/ClassementsAttributs.jsx'
-
 import {
-  reglage,
-  coutPoint,
-  coutCumule,
-  totalDepense,
-  statsInitiales,
-  budgetNiveau,
-  attributsParCategorie,
-  attributsVisibles,
+  reglage, coutPoint, coutCumule, totalDepense, statsInitiales,
+  budgetNiveau, attributsParCategorie, attributsVisibles,
 } from './lib/couts.js'
-
-import {
-  calculerAjustementTaillePoids,
-} from './lib/taillePoids.js'
-
+import { calculerAjustementTaillePoids } from './lib/taillePoids.js'
 import { NB_SLOTS } from './lib/playstyles.js'
 import { encodeBuild, decodeBuild } from './lib/partage.js'
-
 import Header from './front/section/Header.jsx'
 
 const slotsVides = () => Array(NB_SLOTS).fill(null)
-
 const corpsInitial = (arche) => ({
   taille: arche.corps ? arche.corps.taille.base : 180,
   poids: arche.corps ? arche.corps.poids.base : 78,
 })
 
 export default function App() {
-  /*
-   * ============================================================
-   * BUILD INITIAL
-   * ============================================================
-   */
-
+  // BUILD INITIAL
   const depart = useMemo(() => {
     const lu = decodeBuild(window.location.hash)
-
-    const arche =
-      (lu && lu.arche) ||
-      DATA.archetypes[0]
+    const arche = (lu && lu.arche) || DATA.archetypes[0]
 
     return {
       arche,
-
-      niveau:
-        (lu && lu.niveau) ||
-        40,
-
-      stats:
-        (lu && lu.stats) ||
-        statsInitiales(arche),
-
-      corps:
-        (lu && lu.corps) ||
-        corpsInitial(arche),
-
-      slots:
-        lu && lu.slots
-          ? lu.slots.slice(0, NB_SLOTS)
-          : slotsVides(),
-
-      installations:
-        lu && lu.installations
-          ? lu.installations
-          : {},
-
-      spec:
-        (lu && lu.spec) ||
-        arche.specialisations?.find(
-          (s) => s.nom === 'Aucune'
-        ) ||
-        arche.specialisations?.[0] ||
-        null,
-
-      maitrises:
-        (lu && lu.maitrises) ||
-        {},
-
-      genre:
-        (lu && lu.genre) ||
-        'H',
+      niveau: (lu && lu.niveau) || 40,
+      stats: (lu && lu.stats) || statsInitiales(arche),
+      corps: (lu && lu.corps) || corpsInitial(arche),
+      slots: lu && lu.slots ? lu.slots.slice(0, NB_SLOTS) : slotsVides(),
+      installations: lu && lu.installations ? lu.installations : {},
+      spec: (lu && lu.spec) ||
+        arche.specialisations?.find((s) => s.nom === 'Aucune') ||
+        arche.specialisations?.[0] || null,
+      maitrises: (lu && lu.maitrises) || {},
+      genre: (lu && lu.genre) || 'H',
     }
   }, [])
 
-  /*
-   * ============================================================
-   * STATES
-   * ============================================================
-   */
-
-  const [archeId, setArcheId] = useState(
-    depart.arche.id
-  )
-
-  const [niveau, setNiveau] = useState(
-    depart.niveau
-  )
-
-  const [stats, setStats] = useState(
-    depart.stats
-  )
-
-  const [spec, setSpec] = useState(
-    depart.spec
-  )
-
-  const [corps, setCorps] = useState(
-    depart.corps
-  )
-
-  const [slots, setSlots] = useState(
-    depart.slots
-  )
-
-  const [installations, setInstallations] = useState(
-    depart.installations
-  )
-
+  // STATES
+  const [archeId, setArcheId] = useState(depart.arche.id)
+  const [niveau, setNiveau] = useState(depart.niveau)
+  const [stats, setStats] = useState(depart.stats)
+  const [spec, setSpec] = useState(depart.spec)
+  const [corps, setCorps] = useState(depart.corps)
+  const [slots, setSlots] = useState(depart.slots)
+  const [installations, setInstallations] = useState(depart.installations)
   const [bonusStats, setBonusStats] = useState({})
+  const [maitrises, setMaitrises] = useState(depart.maitrises)
+  const [genre, setGenre] = useState(depart.genre)
+  const [ajustementsAffiches, setAjustementsAffiches] = useState(false)
 
-  const [maitrises, setMaitrises] = useState(
-    depart.maitrises
-  )
+  // ARCHETYPE ACTUEL
+  const arche = DATA.archetypes.find((a) => a.id === archeId)
 
-  const [genre, setGenre] = useState(
-    depart.genre
-  )
-
-  const [ajustementsAffiches, setAjustementsAffiches] =
-    useState(false)
-
-  /*
-   * ============================================================
-   * ARCHETYPE ACTUEL
-   * ============================================================
-   */
-
-  const arche = DATA.archetypes.find(
-    (a) => a.id === archeId
-  )
-
-  /*
-   * ============================================================
-   * CHANGEMENT D'ARCHETYPE
-   * ============================================================
-   */
-
+  // CHANGEMENT D'ARCHETYPE
   const changerArchetype = useCallback((id) => {
-    const a = DATA.archetypes.find(
-      (x) => x.id === id
-    )
-
+    const a = DATA.archetypes.find((x) => x.id === id)
     if (!a) return
 
     setArcheId(id)
-
-    setStats(
-      statsInitiales(a)
-    )
-
-    setSlots(
-      slotsVides()
-    )
-
+    setStats(statsInitiales(a))
+    setSlots(slotsVides())
     setInstallations({})
-
-    setCorps(
-      corpsInitial(a)
-    )
-
+    setCorps(corpsInitial(a))
     setSpec(
-      a.specialisations?.find(
-        (s) => s.nom === 'Aucune'
-      ) ||
-      a.specialisations?.[0] ||
-      null
+      a.specialisations?.find((s) => s.nom === 'Aucune') ||
+      a.specialisations?.[0] || null
     )
-
     setMaitrises({})
   }, [])
 
-  /*
-   * ============================================================
-   * REINITIALISATION
-   * ============================================================
-   */
-
+  // REINITIALISATION
   function reinitialiser() {
-    setStats(
-      statsInitiales(arche)
-    )
-
-    setSlots(
-      slotsVides()
-    )
-
+    setStats(statsInitiales(arche))
+    setSlots(slotsVides())
     setInstallations({})
-
-    setCorps(
-      corpsInitial(arche)
-    )
-
+    setCorps(corpsInitial(arche))
     setSpec(
-      arche.specialisations?.find(
-        (s) => s.nom === 'Aucune'
-      ) ||
-      arche.specialisations?.[0] ||
-      null
+      arche.specialisations?.find((s) => s.nom === 'Aucune') ||
+      arche.specialisations?.[0] || null
     )
-
     setMaitrises({})
   }
 
-  /*
-   * ============================================================
-   * ATTRIBUTS PAR CATEGORIE
-   * ============================================================
-   */
+  // ATTRIBUTS PAR CATEGORIE
+  const parCategorie = useMemo(() => attributsParCategorie(arche), [arche])
 
-  const parCategorie = useMemo(
-    () => attributsParCategorie(arche),
-    [arche]
-  )
-
-  /*
-   * ============================================================
-   * DEPENSES DU BUILD
-   * ============================================================
-   */
-
-  const depenses = useMemo(
-    () => totalDepense(arche, stats),
-    [arche, stats]
-  )
-
+  // DEPENSES DU BUILD
+  const depenses = useMemo(() => totalDepense(arche, stats), [arche, stats])
   const budget = budgetNiveau(niveau)
+  const restant = budget - depenses
 
-  const restant =
-    budget - depenses
-
-  /*
-   * ============================================================
-   * URL DE PARTAGE DU BUILD
-   * ============================================================
-   */
-
+  // URL DE PARTAGE
   const lien = useMemo(
-    () =>
-      encodeBuild({
-        arche,
-        niveau,
-        stats,
-        corps,
-        slots,
-        installations,
-        spec,
-        maitrises,
-        genre,
-      }),
-    [
-      arche,
-      niveau,
-      stats,
-      corps,
-      slots,
-      installations,
-      spec,
-      maitrises,
-      genre,
-    ]
+    () => encodeBuild({
+      arche, niveau, stats, corps, slots, installations, spec, maitrises, genre,
+    }),
+    [arche, niveau, stats, corps, slots, installations, spec, maitrises, genre]
   )
 
-  /*
-   * ============================================================
-   * METTRE A JOUR L'URL
-   * ============================================================
-   */
-
+  // METTRE A JOUR L'URL
   useEffect(() => {
-    window.history.replaceState(
-      null,
-      '',
-      lien
-    )
+    window.history.replaceState(null, '', lien)
   }, [lien])
 
-  /*
-   * ============================================================
-   * CALCUL DES BONUS / MALUS
-   *
-   * Sources :
-   * - maîtrises
-   * - installations
-   *
-   * L'ajustement taille / poids est calculé
-   * séparément dans le classement.
-   * ============================================================
-   */
-
+  // CALCUL DES BONUS / MALUS
   useEffect(() => {
     const nouveauxBonus = {}
 
-    /*
-     * --------------------
-     * MAÎTRISES
-     * --------------------
-     */
+    // MAÎTRISES
+    Object.entries(maitrises).forEach(([archetypeId, niveaux]) => {
+      const maitrise = DATA.maitrise?.[archetypeId]
+      if (!maitrise) return
 
-    Object.entries(maitrises).forEach(
-      ([archetypeId, niveaux]) => {
-        const maitrise =
-          DATA.maitrise?.[archetypeId]
+      niveaux.forEach((niveauMaitrise) => {
+        const bonus = maitrise[String(niveauMaitrise)] || []
 
-        if (!maitrise) return
-
-        niveaux.forEach(
-          (niveauMaitrise) => {
-            const bonus =
-              maitrise[
-                String(niveauMaitrise)
-              ] || []
-
-            bonus.forEach(
-              ({ attribut, gain }) => {
-                nouveauxBonus[attribut] =
-                  (
-                    nouveauxBonus[attribut] ||
-                    0
-                  ) + gain
-              }
-            )
-          }
-        )
-      }
-    )
-
-    /*
-     * --------------------
-     * INSTALLATIONS
-     * --------------------
-     */
-
-    Object.entries(
-      installations
-    ).forEach(
-      ([installationId, niveauInstallation]) => {
-        const installation =
-          DATA.installationsClub?.find(
-            (inst) =>
-              inst.id ===
-              installationId
-          )
-
-        if (!installation) return
-
-        const niveauData =
-          installation.niveaux[
-            niveauInstallation - 1
-          ]
-
-        if (!niveauData?.bonus) return
-
-        const bonusLines =
-          niveauData.bonus.split('//')
-
-        bonusLines.forEach((line) => {
-          const match = line
-            .trim()
-            .match(
-              /^(.+?)\s+\+(\d+)$/
-            )
-
-          if (!match) return
-
-          const nomAttribut =
-            match[1].trim()
-
-          const gain =
-            Number(match[2])
-
-          const attribut =
-            DATA.attributs.find(
-              (attr) =>
-                attr.id.toLowerCase() ===
-                nomAttribut.toLowerCase()
-            )
-
-          if (!attribut) return
-
-          nouveauxBonus[
-            attribut.id
-          ] =
-            (
-              nouveauxBonus[
-                attribut.id
-              ] || 0
-            ) + gain
+        bonus.forEach(({ attribut, gain }) => {
+          nouveauxBonus[attribut] = (nouveauxBonus[attribut] || 0) + gain
         })
-      }
-    )
+      })
+    })
 
-    setBonusStats(
-      nouveauxBonus
-    )
-  }, [
-    maitrises,
-    installations,
-  ])
+    // INSTALLATIONS
+    Object.entries(installations).forEach(([installationId, niveauInstallation]) => {
+      const installation = DATA.installationsClub?.find(
+        (inst) => inst.id === installationId
+      )
+      if (!installation) return
 
-  /*
-   * ============================================================
-   * CLASSEMENTS DES ATTRIBUTS
-   *
-   * Le classement tient maintenant compte de la STAT ACTUELLE
-   * du build.
-   *
-   * Exemple :
-   *
-   * Vitesse actuelle = 84
-   *
-   * ACTUEL → 90
-   *
-   * Le coût calculé est donc :
-   *
-   * 84 → 90
-   *
-   * et non plus :
-   *
-   * MIN → 90
-   *
-   * Le classement est donc dynamique lorsque le joueur
-   * modifie ses attributs.
-   * ============================================================
-   */
+      const niveauData = installation.niveaux[niveauInstallation - 1]
+      if (!niveauData?.bonus) return
 
+      niveauData.bonus.split('//').forEach((line) => {
+        const match = line.trim().match(/^(.+?)\s+\+(\d+)$/)
+        if (!match) return
+
+        const nomAttribut = match[1].trim()
+        const gain = Number(match[2])
+        const attribut = DATA.attributs.find(
+          (attr) => attr.id.toLowerCase() === nomAttribut.toLowerCase()
+        )
+        if (!attribut) return
+
+        nouveauxBonus[attribut.id] = (nouveauxBonus[attribut.id] || 0) + gain
+      })
+    })
+
+    setBonusStats(nouveauxBonus)
+  }, [maitrises, installations])
+
+  // CLASSEMENTS DES ATTRIBUTS
   const classementsAttributs = useMemo(() => {
-    const attributs =
-      attributsVisibles(arche)
+    const attributs = attributsVisibles(arche)
 
-    /*
-     * ----------------------------------------------------------
-     * BONUS / MALUS EFFECTIF
-     * ----------------------------------------------------------
-     */
-
-    const obtenirAjustement = (
-      attr
-    ) => {
-      const taillePoids =
-        calculerAjustementTaillePoids({
-          attr,
-          corps,
-          arche,
-        })
-
-      const bonusMaitriseInstallation =
-        bonusStats?.[attr.id] || 0
-
-      return (
-        taillePoids +
-        bonusMaitriseInstallation
-      )
+    const obtenirAjustement = (attr) => {
+      const taillePoids = calculerAjustementTaillePoids({ attr, corps, arche })
+      const bonusMaitriseInstallation = bonusStats?.[attr.id] || 0
+      return taillePoids + bonusMaitriseInstallation
     }
 
-    /*
-     * ----------------------------------------------------------
-     * STAT ACTUELLE
-     * ----------------------------------------------------------
-     */
-
-    const obtenirStatActuelle = (
-      attr
-    ) => {
-      const r =
-        reglage(
-          arche,
-          attr.id
-        )
-
-      return (
-        stats?.[attr.id] ??
-        r.base
-      )
+    const obtenirStatActuelle = (attr) => {
+      const r = reglage(arche, attr.id)
+      return stats?.[attr.id] ?? r.base
     }
 
-    /*
-     * ----------------------------------------------------------
-     * CALCUL DU COÛT RESTANT
-     * ----------------------------------------------------------
-     */
-
-    const calculerCoutRestant = (
-      attr,
-      niveauActuel,
-      cible
-    ) => {
-      if (
-        niveauActuel >=
-        cible
-      ) {
-        return 0
-      }
-
-      return coutCumule(
-        arche,
-        attr.id,
-        niveauActuel,
-        cible
-      )
+    const calculerCoutRestant = (attr, niveauActuel, cible) => {
+      if (niveauActuel >= cible) return 0
+      return coutCumule(arche, attr.id, niveauActuel, cible)
     }
 
-    /*
-     * ----------------------------------------------------------
-     * CLASSEMENT BRUT
-     *
-     * Sans bonus / malus.
-     *
-     * On part de la stat actuelle du build.
-     * ----------------------------------------------------------
-     */
-
-    const construireClassementBrut = (
-      cibleType
-    ) => {
+    const construireClassementBrut = (cibleType) => {
       return attributs
         .map((attr) => {
-          const r =
-            reglage(
-              arche,
-              attr.id
-            )
+          const r = reglage(arche, attr.id)
+          const statActuelle = obtenirStatActuelle(attr)
+          const cible = cibleType === 'max'
+            ? r.max
+            : Math.min(Number(cibleType), r.max)
 
-          const statActuelle =
-            obtenirStatActuelle(
-              attr
-            )
+          const niveauDepart = Math.max(
+            r.min,
+            Math.min(statActuelle, r.max)
+          )
 
-          const cible =
-            cibleType === 'max'
-              ? r.max
-              : Math.min(
-                  Number(
-                    cibleType
-                  ),
-                  r.max
-                )
-
-          /*
-           * Niveau de départ limité
-           * aux bornes de l'attribut.
-           */
-
-          const niveauDepart =
-            Math.max(
-              r.min,
-              Math.min(
-                statActuelle,
-                r.max
-              )
-            )
-
-          const cout =
-            calculerCoutRestant(
-              attr,
-              niveauDepart,
-              cible
-            )
+          const cout = calculerCoutRestant(attr, niveauDepart, cible)
 
           return {
             id: attr.id,
-
-            nom:
-              attr.nom ||
-              attr.label ||
-              attr.id,
-
-            categorie:
-              attr.categorie,
-
+            nom: attr.nom || attr.label || attr.id,
+            categorie: attr.categorie,
             min: r.min,
-
-            actuel:
-              statActuelle,
-
+            actuel: statActuelle,
             max: r.max,
-
             cible,
-
-            depart:
-              niveauDepart,
-
+            depart: niveauDepart,
             cout,
-
             ajustement: 0,
           }
         })
         .filter(Boolean)
         .sort((a, b) => {
-          /*
-           * Classement principal :
-           * coût restant.
-           */
-
-          if (
-            a.cout !==
-            b.cout
-          ) {
-            return (
-              a.cout -
-              b.cout
-            )
-          }
-
-          /*
-           * Égalité :
-           * attribut ayant la plus petite
-           * valeur actuelle en premier.
-           */
-
-          if (
-            a.actuel !==
-            b.actuel
-          ) {
-            return (
-              a.actuel -
-              b.actuel
-            )
-          }
-
-          return a.nom.localeCompare(
-            b.nom
-          )
+          if (a.cout !== b.cout) return a.cout - b.cout
+          if (a.actuel !== b.actuel) return a.actuel - b.actuel
+          return a.nom.localeCompare(b.nom)
         })
     }
 
-    /*
-     * ----------------------------------------------------------
-     * CLASSEMENT EFFECTIF
-     *
-     * Avec bonus / malus.
-     * ----------------------------------------------------------
-     */
-
-    const construireClassementEffectif = (
-      cibleType
-    ) => {
+    const construireClassementEffectif = (cibleType) => {
       return attributs
         .map((attr) => {
-          const r =
-            reglage(
-              arche,
-              attr.id
-            )
+          const r = reglage(arche, attr.id)
+          const statActuelle = obtenirStatActuelle(attr)
+          const ajustement = obtenirAjustement(attr)
+          const valeurEffectiveActuelle = statActuelle + ajustement
 
-          const statActuelle =
-            obtenirStatActuelle(
-              attr
-            )
+          const cible = cibleType === 'max'
+            ? r.max
+            : Math.min(Number(cibleType), r.max)
 
-          const ajustement =
-            obtenirAjustement(
-              attr
-            )
-
-          const valeurEffectiveActuelle =
-            statActuelle +
-            ajustement
-
-          const cible =
-            cibleType === 'max'
-              ? r.max
-              : Math.min(
-                  Number(
-                    cibleType
-                  ),
-                  r.max
-                )
-
-          /*
-           * Si la stat effective actuelle
-           * atteint déjà la cible :
-           *
-           * coût = 0
-           */
-
-          if (
-            valeurEffectiveActuelle >=
-            cible
-          ) {
+          if (valeurEffectiveActuelle >= cible) {
             return {
               id: attr.id,
-
-              nom:
-                attr.nom ||
-                attr.label ||
-                attr.id,
-
-              categorie:
-                attr.categorie,
-
+              nom: attr.nom || attr.label || attr.id,
+              categorie: attr.categorie,
               min: r.min,
-
-              actuel:
-                statActuelle,
-
-              actuelEffectif:
-                valeurEffectiveActuelle,
-
+              actuel: statActuelle,
+              actuelEffectif: valeurEffectiveActuelle,
               max: r.max,
-
               cible,
-
-              depart:
-                statActuelle,
-
-              niveauNecessaire:
-                statActuelle,
-
+              depart: statActuelle,
+              niveauNecessaire: statActuelle,
               cout: 0,
-
               ajustement,
             }
           }
 
-          /*
-           * Niveau brut nécessaire pour
-           * atteindre la cible avec le bonus.
-           *
-           * Exemple :
-           *
-           * cible = 90
-           * bonus = +5
-           *
-           * niveau nécessaire = 85
-           */
+          const niveauNecessaire = Math.max(r.min, cible - ajustement)
+          if (niveauNecessaire > r.max) return null
 
-          const niveauNecessaire =
-            Math.max(
-              r.min,
-              cible -
-                ajustement
-            )
+          const niveauDepart = Math.max(
+            r.min,
+            Math.min(statActuelle, r.max)
+          )
 
-          /*
-           * Impossible d'atteindre la cible.
-           */
-
-          if (
-            niveauNecessaire >
-            r.max
-          ) {
-            return null
-          }
-
-          /*
-           * Départ = stat actuelle.
-           */
-
-          const niveauDepart =
-            Math.max(
-              r.min,
-              Math.min(
-                statActuelle,
-                r.max
-              )
-            )
-
-          const cout =
-            calculerCoutRestant(
-              attr,
-              niveauDepart,
-              niveauNecessaire
-            )
+          const cout = calculerCoutRestant(
+            attr,
+            niveauDepart,
+            niveauNecessaire
+          )
 
           return {
             id: attr.id,
-
-            nom:
-              attr.nom ||
-              attr.label ||
-              attr.id,
-
-            categorie:
-              attr.categorie,
-
+            nom: attr.nom || attr.label || attr.id,
+            categorie: attr.categorie,
             min: r.min,
-
-            actuel:
-              statActuelle,
-
-            actuelEffectif:
-              valeurEffectiveActuelle,
-
+            actuel: statActuelle,
+            actuelEffectif: valeurEffectiveActuelle,
             max: r.max,
-
             niveauNecessaire,
-
             cible,
-
-            depart:
-              niveauDepart,
-
+            depart: niveauDepart,
             cout,
-
             ajustement,
           }
         })
         .filter(Boolean)
         .sort((a, b) => {
-          /*
-           * Classement par AP restant.
-           */
-
-          if (
-            a.cout !==
-            b.cout
-          ) {
-            return (
-              a.cout -
-              b.cout
-            )
-          }
-
-          /*
-           * Égalité :
-           * valeur actuelle la plus basse
-           * en premier.
-           */
-
-          if (
-            a.actuel !==
-            b.actuel
-          ) {
-            return (
-              a.actuel -
-              b.actuel
-            )
-          }
-
-          return a.nom.localeCompare(
-            b.nom
-          )
+          if (a.cout !== b.cout) return a.cout - b.cout
+          if (a.actuel !== b.actuel) return a.actuel - b.actuel
+          return a.nom.localeCompare(b.nom)
         })
     }
 
-    /*
-     * ----------------------------------------------------------
-     * RESULTAT
-     * ----------------------------------------------------------
-     */
-
     return {
       brut: {
-        minMax:
-          construireClassementBrut(
-            'max'
-          ),
-
-        min80:
-          construireClassementBrut(
-            80
-          ),
-
-        min85:
-          construireClassementBrut(
-            85
-          ),
-
-        min90:
-          construireClassementBrut(
-            90
-          ),
+        minMax: construireClassementBrut('max'),
+        min80: construireClassementBrut(80),
+        min85: construireClassementBrut(85),
+        min90: construireClassementBrut(90),
       },
-
       effectif: {
-        minMax:
-          construireClassementEffectif(
-            'max'
-          ),
-
-        min80:
-          construireClassementEffectif(
-            80
-          ),
-
-        min85:
-          construireClassementEffectif(
-            85
-          ),
-
-        min90:
-          construireClassementEffectif(
-            90
-          ),
+        minMax: construireClassementEffectif('max'),
+        min80: construireClassementEffectif(80),
+        min85: construireClassementEffectif(85),
+        min90: construireClassementEffectif(90),
       },
     }
-  }, [
-    arche,
-    corps,
-    bonusStats,
-    stats,
-  ])
+  }, [arche, corps, bonusStats, stats])
 
-  /*
-   * ============================================================
-   * MODIFICATION D'UN ATTRIBUT
-   * ============================================================
-   */
-
-  function ajuster(
-    attrId,
-    sens
-  ) {
+  // MODIFICATION D'UN ATTRIBUT
+  function ajuster(attrId, sens) {
     setStats((s) => {
-      const r =
-        reglage(
-          arche,
-          attrId
-        )
-
-      const v =
-        s[attrId] ??
-        r.base
-
-      /*
-       * +1
-       */
+      const r = reglage(arche, attrId)
+      const v = s[attrId] ?? r.base
 
       if (sens > 0) {
-        if (
-          coutPoint(
-            arche,
-            attrId,
-            v
-          ) === null
-        ) {
-          return s
-        }
-
-        return {
-          ...s,
-          [attrId]:
-            v + 1,
-        }
+        if (coutPoint(arche, attrId, v) === null) return s
+        return { ...s, [attrId]: v + 1 }
       }
 
-      /*
-       * -1
-       */
-
-      if (
-        v <= r.min
-      ) {
-        return s
-      }
-
-      return {
-        ...s,
-        [attrId]:
-          v - 1,
-      }
+      if (v <= r.min) return s
+      return { ...s, [attrId]: v - 1 }
     })
   }
 
-  /*
-   * ============================================================
-   * RENDER
-   * ============================================================
-   */
-
   return (
     <div className="app">
-
       <Header
-        ajustementsAffiches={
-          ajustementsAffiches
-        }
-        setAjustementsAffiches={
-          setAjustementsAffiches
-        }
-        reinitialiser={
-          reinitialiser
-        }
+        ajustementsAffiches={ajustementsAffiches}
+        setAjustementsAffiches={setAjustementsAffiches}
+        reinitialiser={reinitialiser}
         lien={lien}
       />
 
       <ArchetypeSelector
-        archetypes={
-          DATA.archetypes
-        }
-        archeId={
-          archeId
-        }
-        changerArchetype={
-          changerArchetype
-        }
+        archetypes={DATA.archetypes}
+        archeId={archeId}
+        changerArchetype={changerArchetype}
       />
 
       <Bandeau
@@ -1016,116 +333,59 @@ export default function App() {
         onSlots={setSlots}
         spec={spec}
         onSpec={setSpec}
-        installations={
-          installations
-        }
-        onInstallations={
-          setInstallations
-        }
-        depenses={
-          depenses
-        }
-        budget={
-          budget
-        }
-        niveau={
-          niveau
-        }
-        onNiveau={
-          setNiveau
-        }
-        maitrises={
-          maitrises
-        }
-        setMaitrises={
-          setMaitrises
-        }
-        corps={
-          corps
-        }
-        setCorps={
-          setCorps
-        }
-        genre={
-          genre
-        }
-        setGenre={
-          setGenre
-        }
-        bonusStats={
-          bonusStats
-        }
+        installations={installations}
+        onInstallations={setInstallations}
+        depenses={depenses}
+        budget={budget}
+        niveau={niveau}
+        onNiveau={setNiveau}
+        maitrises={maitrises}
+        setMaitrises={setMaitrises}
+        corps={corps}
+        setCorps={setCorps}
+        genre={genre}
+        setGenre={setGenre}
+        bonusStats={bonusStats}
       />
 
       <main className="flex flex-wrap flex-row gap-10 mt-5">
-        {parCategorie.map(
-          ([cat, attrs]) => (
-            <ListeAttributs
-              key={cat}
-              categorie={cat}
-              attributs={attrs}
-              arche={arche}
-              stats={stats}
-              restant={restant}
-              onAjuster={
-                ajuster
-              }
-              corps={corps}
-              bonusStats={
-                bonusStats
-              }
-              setBonusStats={
-                setBonusStats
-              }
-              ajustementsAffiches={
-                ajustementsAffiches
-              }
-            />
-          )
-        )}
+        {parCategorie.map(([cat, attrs]) => (
+          <ListeAttributs
+            key={cat}
+            categorie={cat}
+            attributs={attrs}
+            arche={arche}
+            stats={stats}
+            restant={restant}
+            onAjuster={ajuster}
+            corps={corps}
+            bonusStats={bonusStats}
+            setBonusStats={setBonusStats}
+            ajustementsAffiches={ajustementsAffiches}
+          />
+        ))}
       </main>
 
-      {/* ========================================================
-          CLASSEMENTS DES ATTRIBUTS
-          ======================================================== */}
-
       <ClassementsAttributs
-        classements={
-          classementsAttributs
-        }
-        arche={
-          arche
-        }
+        classements={classementsAttributs}
+        arche={arche}
       />
 
-      <div
-        className="ap-mobile"
-        aria-hidden="true"
-      >
-        <span
-          className={
-            restant < 0
-              ? 'negatif'
-              : ''
-          }
-        >
+      <div className="ap-mobile" aria-hidden="true">
+        <span className={restant < 0 ? 'negatif' : ''}>
           {restant}
         </span>{' '}
         AP restants
-
         <span className="ap-mobile-detail">
           {arche.nom} · niveau {niveau}
         </span>
       </div>
 
       <footer className="pied">
-        Fait par <code>Klebar</code> et{' '}
-        <code>Loup</code>{' '}
-        (Symphonyyyyyyyyyyy)
+        Fait par <code>Klebar</code> et <code>Loup</code> (Symphonyyyyyyyyyyy)
         <br />
         Site non affilié à EA Sports.
       </footer>
-
     </div>
   )
 }

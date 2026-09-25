@@ -1,166 +1,89 @@
-import { useState } from 'react'
-
 export default function ClassementsAttributs({
   classements,
   arche,
 }) {
-  const [avecBonusMalus, setAvecBonusMalus] =
-    useState(false)
-
-  if (!classements) {
-    return null
-  }
-
-  const donnees = avecBonusMalus
-    ? classements.effectif
-    : classements.brut
-
   const colonnes = [
     {
-      key: 'minMax',
+      id: 'minMax',
       titre: 'ACTUEL → MAX',
     },
     {
-      key: 'min80',
+      id: 'min80',
       titre: 'ACTUEL → 80',
     },
     {
-      key: 'min85',
+      id: 'min85',
       titre: 'ACTUEL → 85',
     },
     {
-      key: 'min90',
+      id: 'min90',
       titre: 'ACTUEL → 90',
     },
   ]
 
+  const afficherLigne = (item, index) => (
+    <div
+      key={item.id}
+      className="classement-ligne"
+    >
+      <div className="classement-rang">
+        {index + 1}
+      </div>
+
+      <div className="classement-info">
+        <div className="classement-nom">
+          {item.nom}
+        </div>
+
+        <div className="classement-details">
+          {item.actuel} → {item.cible}
+        </div>
+      </div>
+
+      <div className="classement-cout">
+        {item.cout} AP
+      </div>
+    </div>
+  )
+
   return (
-    <section className="classements-attributs">
+    <section className="classements">
       <div className="classements-header">
         <div>
           <h2>
             Classement des coûts d'attributs
           </h2>
 
-          {arche?.nom && (
-            <p className="classements-archetype">
-              {arche.nom}
-            </p>
-          )}
+          <p className="classements-archetype">
+            {arche.nom}
+          </p>
         </div>
 
         <button
           type="button"
-          className={
-            avecBonusMalus
-              ? 'classements-toggle active'
-              : 'classements-toggle'
-          }
-          onClick={() =>
-            setAvecBonusMalus(
-              (value) => !value
-            )
-          }
+          className="classements-toggle"
         >
-          {avecBonusMalus
-            ? 'Avec bonus / malus'
-            : 'Sans bonus / malus'}
+          Sans bonus / malus
         </button>
       </div>
 
-      {avecBonusMalus && (
-        <div className="classements-warning">
-          ⚠ Rappel : les bonus/malus ne permettent pas
-          de débloquer un PlayStyle.
-        </div>
-      )}
-
       <div className="classements-grid">
         {colonnes.map((colonne) => {
-          const classement =
-            (
-              donnees?.[colonne.key] || []
-            ).filter(
-              (attr) =>
-                attr.nom !==
-                  'Gestes techniques' &&
-                attr.nom !==
-                  'Mauvais pied'
-            )
+          const liste =
+            classements?.brut?.[colonne.id] ?? []
 
           return (
             <div
-              key={colonne.key}
+              key={colonne.id}
               className="classement-colonne"
             >
-              <h3>{colonne.titre}</h3>
+              <h3>
+                {colonne.titre}
+              </h3>
 
-              {classement.length === 0 ? (
-                <div className="classement-vide">
-                  Aucun attribut
-                </div>
-              ) : (
-                <div className="classement-liste">
-                  {classement.map(
-                    (attr, index) => (
-                      <div
-                        key={attr.id}
-                        className="classement-ligne"
-                      >
-                        <div className="classement-rang">
-                          {index + 1}
-                        </div>
-
-                        <div className="classement-info">
-                          <div className="classement-nom">
-                            {attr.nom}
-                          </div>
-
-                          <div className="classement-details">
-                            {attr.actuel}
-                            {' → '}
-                            {avecBonusMalus &&
-                            attr.niveauNecessaire !=
-                              null
-                              ? attr.cible
-                              : attr.cible}
-
-                            {avecBonusMalus &&
-                              attr.ajustement !==
-                                0 && (
-                                <span
-                                  className={
-                                    attr.ajustement >
-                                    0
-                                      ? 'bonus'
-                                      : 'malus'
-                                  }
-                                >
-                                  {' '}
-                                  (
-                                  {attr.ajustement >
-                                  0
-                                    ? '+'
-                                    : ''}
-                                  {
-                                    attr.ajustement
-                                  }
-                                  )
-                                </span>
-                              )}
-                          </div>
-                        </div>
-
-                        <div className="classement-cout">
-                          {attr.cout === 0
-                            ? 'Déjà atteint'
-                            : `${attr.cout} AP`}
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
-              )}
+              <div className="classement-liste">
+                {liste.map(afficherLigne)}
+              </div>
             </div>
           )
         })}
