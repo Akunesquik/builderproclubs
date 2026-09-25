@@ -258,7 +258,7 @@ export default function Bandeau({
         </div>
 
 
-        {/* ==================== INSTALLATIONS ==================== */}
+        {/* ==================== Bonus Additionnels ==================== */}
         <div className="w-full lg:flex-1 min-w-0 max-w-70">
 
           <div className="categorie-tete">
@@ -284,7 +284,7 @@ export default function Bandeau({
         {/* ==================== RÉSUMÉ ==================== */}
         <div className="w-full lg:flex-1 min-w-0 max-w-80">
 
-          <div className="playstyles-summary">
+          <div className="playstyles-summary w-full">
             <JaugePoints  depenses={depenses}  budget={budget}  niveau={niveau}  onNiveau={onNiveau}/>
           </div>
 

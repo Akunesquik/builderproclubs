@@ -4,7 +4,7 @@ export default function JaugePoints({ depenses, budget, niveau, onNiveau }){
   const pct = budget ? Math.min(100, (depenses / budget) * 100) : 0
   const restant = budget - depenses
   return (
-    <div className="jauge px-3 py-4 my-4">
+    <div className="jauge px-3 py-4">
       <div className="jauge-chiffre flex justify-between">
         <div className='flex gap-2'>
           <strong className={restant < 0 ? 'negatif' : ''}>{restant}</strong>
