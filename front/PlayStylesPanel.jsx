@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   NB_SLOTS,
   appliquer,
@@ -50,6 +50,24 @@ export default function PlayStylesPanel({
   const NOM_FR_PLAYSTYLE = Object.fromEntries(
     DATA.playStyles.map((p) => [p.nom, p.nomFr])
   )
+
+  // PlayStyles débloqués via une installation du club au niveau 3
+  const playstylesInstallations = useMemo(() => {
+    const noms = new Set()
+
+    Object.entries(installations || {}).forEach(([id, niv]) => {
+      if (niv === 3) {
+        const inst = DATA.installationsClub.find((i) => i.id === id)
+        const styleJeu = inst?.niveaux?.[2]?.styleJeu
+
+        if (styleJeu) {
+          noms.add(styleJeu)
+        }
+      }
+    })
+
+    return [...noms]
+  }, [installations])
 
   function retirer(i, e) {
     e.stopPropagation()
@@ -203,6 +221,34 @@ export default function PlayStylesPanel({
                     </>
                   )}
                 </button>
+              )
+            })}
+
+            {/* ==================== PLAYSTYLE(S) VIA INSTALLATIONS DU CLUB ==================== */}
+            {playstylesInstallations.map((nom) => {
+              const frenchName = NOM_FR_PLAYSTYLE[nom] ?? nom
+              const silverPath = `${import.meta.env.BASE_URL}img/playstyles/silver/${frenchName}.png`
+              const goldPath = `${import.meta.env.BASE_URL}img/playstyles/gold/${frenchName}.png`
+
+              return (
+                <div
+                  key={nom}
+                  className="rempli flex items-center justify-center border border-amber-400 rounded p-2 max-w-full"
+                  title={nom}
+                >
+                  <img
+                    src={silverPath}
+                    alt={nom}
+                    className="h-20"
+                    onError={(e) => {
+                      if (e.target.src.includes('/silver/')) {
+                        e.target.src = goldPath
+                      } else {
+                        e.target.style.display = 'none'
+                      }
+                    }}
+                  />
+                </div>
               )
             })}
 
