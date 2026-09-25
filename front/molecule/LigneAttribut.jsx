@@ -4,10 +4,31 @@ import { calculerAjustementTaillePoids } from '../../lib/taillePoids.js'
 import Etoiles from './composants/Etoiles.jsx'
 import BonusStats from './composants/BonusStats.jsx'
 
-export default function LigneAttribut({ attr, reg, valeur, cout, abordable, restant, onChange, arche, corps, bonusStats, ajustementsAffiches }) {
+export default function LigneAttribut({
+  attr,
+  reg,
+  valeur,
+  cout,
+  abordable,
+  restant,
+  onChange,
+  arche,
+  corps,
+  bonusStats,
+  ajustementsAffiches
+}) {
   const etoiles = estEtoiles(reg)
   const investi = valeur > reg.base
-  const borne = (x) => Math.max(0, Math.min(100, x))
+
+  const borne = (x) =>
+    Math.max(0, Math.min(100, x))
+
+  const couleurBarre = (valeur) => {
+    if (valeur < 50) return '#ef4444'
+    if (valeur < 80) return '#fb923c'
+    if (valeur < 90) return '#15803d'
+    return '#84cc16'
+  }
 
   const dragging = useRef(false)
 
@@ -21,8 +42,14 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
 
   // Bonus/malus taille-poids + maîtrise pour cette ligne
   const ajustement = useMemo(() => {
-    const taillepoids = calculerAjustementTaillePoids({ attr, corps, arche })
-    const bonusMaitrise = bonusStats?.[attr.id] || 0
+    const taillepoids = calculerAjustementTaillePoids({
+      attr,
+      corps,
+      arche
+    })
+
+    const bonusMaitrise =
+      bonusStats?.[attr.id] || 0
 
     return taillepoids + bonusMaitrise
   }, [attr, corps, arche, bonusStats])
@@ -36,7 +63,6 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
       setValeurAffichee(valeur)
     }
   }, [valeur, restant])
-
 
   const stopRepeatingChange = useCallback(() => {
     if (intervalRef.current) {
@@ -122,7 +148,8 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
       stopRepeatingChange()
 
       // Premier changement immédiat
-      const premierChangement = appliquerChangement(amount)
+      const premierChangement =
+        appliquerChangement(amount)
 
       if (!premierChangement) {
         return
@@ -130,7 +157,8 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
 
       // Répétition
       intervalRef.current = setInterval(() => {
-        const changement = appliquerChangement(amount)
+        const changement =
+          appliquerChangement(amount)
 
         // Dès que ce n'est plus possible, on arrête
         if (!changement) {
@@ -148,18 +176,32 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
     startRepeatingChange(amount)
   }
 
-  // Valeur affichée en tenant compte du bonus/malus si le bouton central est activé
+  // Valeur affichée en tenant compte du bonus/malus
+  // si le bouton central est activé
   const valeurAvecAjustement = ajustementsAffiches
-    ? Math.max(0, Math.min(99, valeurAffichee + ajustement))
+    ? Math.max(
+        0,
+        Math.min(
+          99,
+          valeurAffichee + ajustement
+        )
+      )
     : valeurAffichee
 
   return (
-    <div className={'ligne' + (investi ? ' investie' : '')}>
+    <div
+      className={
+        'ligne' +
+        (investi ? ' investie' : '')
+      }
+    >
 
       {/* BOUTON - */}
       <button
         className="pas"
-        onMouseDown={() => handleMouseDown(-1)}
+        onMouseDown={() =>
+          handleMouseDown(-1)
+        }
         onMouseUp={stopRepeatingChange}
         onMouseLeave={stopRepeatingChange}
         disabled={valeur <= reg.min}
@@ -173,10 +215,18 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
         <div className="ligne-tete">
 
           <span className="ligne-nom flex">
-            <span className={reg.cle ? "text-green-500" : ""}>
+            <span
+              className={
+                reg.cle
+                  ? 'text-green-500'
+                  : ''
+              }
+            >
               {attr.nom}
             </span>
+
             {' '}
+
             {!ajustementsAffiches && (
               <BonusStats
                 arche={arche}
@@ -196,6 +246,7 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
             ) : (
               <>
                 {valeurAvecAjustement}
+
                 <small className="ligne-plafond">
                   /{reg.max}
                 </small>
@@ -209,22 +260,12 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
           <div className="barre">
 
             <div
-              className={
-                'barre-base ' +
-                (
-                  !investi
-                    ? ''
-                    : valeurAvecAjustement < 60
-                      ? '!bg-red-500'
-                      : valeurAvecAjustement < 75
-                        ? '!bg-orange-400'
-                        : valeurAvecAjustement <= 85
-                          ? '!bg-green-700'
-                          : '!bg-lime-500'
-                )
-              }
+              className="barre-base"
               style={{
-                width: borne(valeurAvecAjustement) + '%'
+                width: borne(valeurAvecAjustement) + '%',
+                backgroundColor: investi
+                  ? couleurBarre(valeurAvecAjustement)
+                  : '#46596a'
               }}
             />
 
@@ -237,18 +278,31 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
       <button
         className={
           'pas plus' +
-          (abordable ? '' : ' hors-budget')
+          (abordable
+            ? ''
+            : ' hors-budget')
         }
-        onMouseDown={() => handleMouseDown(2)}
+        onMouseDown={() =>
+          handleMouseDown(2)
+        }
         onMouseUp={stopRepeatingChange}
         onMouseLeave={stopRepeatingChange}
-        disabled={cout === null || !abordable}
-        aria-label={'Monter ' + attr.nom}
+        disabled={
+          cout === null ||
+          !abordable
+        }
+        aria-label={
+          'Monter ' + attr.nom
+        }
       >
-        <span className="pas-signe">+</span>
+        <span className="pas-signe">
+          +
+        </span>
 
         <span className="pas-cout">
-          {cout === null ? 'max' : cout}
+          {cout === null
+            ? 'max'
+            : cout}
         </span>
       </button>
 
