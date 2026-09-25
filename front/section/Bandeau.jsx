@@ -227,8 +227,13 @@ export default function Bandeau({
             {/* ==================== PLAYSTYLE(S) VIA INSTALLATIONS DU CLUB ==================== */}
             {playstylesInstallations.map((nom) => {
               const frenchName = NOM_FR_PLAYSTYLE[nom] ?? nom
-              const silverPath = `${import.meta.env.BASE_URL}img/playstyles/silver/${frenchName}.png`
-              const goldPath = `${import.meta.env.BASE_URL}img/playstyles/gold/${frenchName}.png`
+              let path
+              if (frenchName.at(-1) === '+'){
+                path = `${import.meta.env.BASE_URL}img/playstyles/gold/${frenchName.slice(0,-1)}.png`
+              }
+              else{
+                path = `${import.meta.env.BASE_URL}img/playstyles/silver/${frenchName}.png`
+              }
 
               return (
                 <div
@@ -237,16 +242,9 @@ export default function Bandeau({
                   title={nom}
                 >
                   <img
-                    src={silverPath}
+                    src={path}
                     alt={nom}
                     className="h-20"
-                    onError={(e) => {
-                      if (e.target.src.includes('/silver/')) {
-                        e.target.src = goldPath
-                      } else {
-                        e.target.style.display = 'none'
-                      }
-                    }}
                   />
                 </div>
               )

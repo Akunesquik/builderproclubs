@@ -159,22 +159,18 @@ export default function ClubFacilitiesPanel({ selections, onChange }) {
                               <div className="flex items-center gap-1.5 shrink-0">
                                 <span className="text-sm font-bold text-filet-fort">+</span>
                                 {(() => {
-                                  const frenchName = PLAYSTYLE_MAP[styleJeu]
-                                  if (!frenchName) return null
-                                  const silverPath = `${import.meta.env.BASE_URL}img/playstyles/silver/${frenchName}.png`
-                                  const goldPath = `${import.meta.env.BASE_URL}img/playstyles/gold/${frenchName}.png`
+                                  let path
+                                  if (styleJeu.at(-1) === '+'){
+                                    path = `${import.meta.env.BASE_URL}img/playstyles/gold/${styleJeu.slice(0,-1)}.png`
+                                  }
+                                  else{
+                                    path = `${import.meta.env.BASE_URL}img/playstyles/silver/${styleJeu}.png`
+                                  }
                                   return (
                                     <img
-                                      src={silverPath}
+                                      src={path}
                                       alt={styleJeu}
-                                      className="h-8 w-8"
-                                      onError={(e) => {
-                                        if (e.target.src.includes('/silver/')) {
-                                          e.target.src = goldPath
-                                        } else {
-                                          e.target.style.display = 'none'
-                                        }
-                                      }}
+                                      className="h-10 w-10"
                                     />
                                   )
                                 })()}
