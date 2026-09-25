@@ -1,8 +1,7 @@
 import { reglage, coutPoint, moyenne } from '../../lib/couts.js'
 import LigneAttribut from './LigneAttribut.jsx'
-import Curseur from './composants/Curseur.jsx'
 
-export default function ListeAttributs({ categorie, attributs, arche, stats, restant, onAjuster, corps, setCorps, bonusStats, ajustementsAffiches }) {
+export default function ListeAttributs({ categorie, attributs, arche, stats, restant, onAjuster, corps, bonusStats, ajustementsAffiches }) {
   return (
     <section className={categorie === 'Physique' ? "flex-2" : "flex-1 " + "min-w-[260px]" } >
       <div className="flex justify-between items-center categorie-tete">
@@ -35,34 +34,6 @@ export default function ListeAttributs({ categorie, attributs, arche, stats, res
             />
           )
         })}
-
-        { categorie === "Défense" && (
-          arche.corps ? (
-              <div className="mt-4 flex w-full gap-2">
-                <div className='flex-1'>
-                  <Curseur
-                    label="Taille"
-                    unite="cm"
-                    valeur={corps.taille}
-                    min={arche.corps.taille.min}
-                    max={arche.corps.taille.max}
-                    onChange={(v) => setCorps((c) => ({ ...c, taille: v }))}
-                  />
-                </div>
-                <div className='flex-1'>
-                  <Curseur
-                    label="Poids"
-                    unite="kg"
-                    valeur={corps.poids}
-                    min={arche.corps.poids.min}
-                    max={arche.corps.poids.max}
-                    onChange={(v) => setCorps((c) => ({ ...c, poids: v }))}
-                  />
-                </div>
-              </div>
-            ) : null
-
-        )}
       </div>
     </section>
   )

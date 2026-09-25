@@ -73,6 +73,10 @@ export default function App() {
       maitrises:
         (lu && lu.maitrises) ||
         {},
+
+      genre:
+        (lu && lu.genre) ||
+        'H',
     }
   }, [])
 
@@ -108,6 +112,10 @@ export default function App() {
 
   const [maitrises, setMaitrises] = useState(
     depart.maitrises
+  )
+
+  const [genre, setGenre] = useState(
+    depart.genre
   )
 
   const [ajustementsAffiches, setAjustementsAffiches] =
@@ -185,6 +193,7 @@ export default function App() {
         installations,
         spec,
         maitrises,
+        genre,
       }),
     [
       arche,
@@ -195,6 +204,7 @@ export default function App() {
       installations,
       spec,
       maitrises,
+      genre,
     ]
   )
 
@@ -365,6 +375,11 @@ export default function App() {
         onNiveau={setNiveau}
         maitrises={maitrises}
         setMaitrises={setMaitrises}
+        corps={corps}
+        setCorps={setCorps}
+        genre={genre}
+        setGenre={setGenre}
+        bonusStats={bonusStats}
       />
 
       <main className="flex flex-wrap flex-row gap-10 mt-5">
@@ -379,7 +394,6 @@ export default function App() {
               restant={restant}
               onAjuster={ajuster}
               corps={corps}
-              setCorps={setCorps}
               bonusStats={bonusStats}
               setBonusStats={
                 setBonusStats
