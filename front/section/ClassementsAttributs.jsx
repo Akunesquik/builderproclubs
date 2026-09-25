@@ -17,7 +17,11 @@ export default function ClassementsAttributs({
   const [avecBonus, setAvecBonus] = useState(false)
 
   const classements = useMemo(() => {
-    const attributs = attributsVisibles(arche)
+    const attributsExclus = ['gestes', 'mauvais_pied']
+
+    const attributs = attributsVisibles(arche).filter(
+      (attr) => !attributsExclus.includes(attr.id)
+    )
 
     const obtenirAjustement = (attr) => {
       const taillePoids = calculerAjustementTaillePoids({
@@ -63,6 +67,11 @@ export default function ClassementsAttributs({
               ? r.max
               : Math.min(Number(cibleType), r.max)
 
+          // La stat a déjà atteint le palier
+          if (statActuelle >= cible) {
+            return null
+          }
+
           const niveauDepart = Math.max(
             r.min,
             Math.min(statActuelle, r.max)
@@ -87,6 +96,7 @@ export default function ClassementsAttributs({
             ajustement: 0,
           }
         })
+        .filter(Boolean)
         .sort((a, b) => {
           if (a.cout !== b.cout) {
             return a.cout - b.cout
@@ -115,21 +125,9 @@ export default function ClassementsAttributs({
               ? r.max
               : Math.min(Number(cibleType), r.max)
 
+          // La valeur effective a déjà atteint le palier
           if (valeurEffectiveActuelle >= cible) {
-            return {
-              id: attr.id,
-              nom: attr.nom || attr.label || attr.id,
-              categorie: attr.categorie,
-              min: r.min,
-              actuel: statActuelle,
-              actuelEffectif: valeurEffectiveActuelle,
-              max: r.max,
-              cible,
-              depart: statActuelle,
-              niveauNecessaire: statActuelle,
-              cout: 0,
-              ajustement,
-            }
+            return null
           }
 
           const niveauNecessaire = Math.max(
@@ -151,6 +149,10 @@ export default function ClassementsAttributs({
             niveauDepart,
             niveauNecessaire
           )
+
+          if (cout <= 0) {
+            return null
+          }
 
           return {
             id: attr.id,
@@ -342,3 +344,4 @@ export default function ClassementsAttributs({
     </section>
   )
 }
+
