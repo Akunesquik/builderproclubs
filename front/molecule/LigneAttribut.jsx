@@ -37,28 +37,6 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
     }
   }, [valeur, restant])
 
-  // Vérifie si on peut augmenter la stat
-  const peutAugmenter = useCallback(() => {
-    const valeurActuelle = valeurRef.current
-    const restantActuel = restantRef.current
-
-    if (valeurActuelle >= reg.max) {
-      return false
-    }
-
-    const cout = coutPoint(
-      arche,
-      attr.id,
-      valeurActuelle
-    ) || 0
-
-    return restantActuel >= cout
-  }, [arche, attr.id, reg.max])
-
-  // Vérifie si on peut diminuer la stat
-  const peutDiminuer = useCallback(() => {
-    return valeurRef.current > reg.min
-  }, [reg.min])
 
   const stopRepeatingChange = useCallback(() => {
     if (intervalRef.current) {
@@ -199,7 +177,14 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
               {attr.nom}
             </span>
             {' '}
-            <BonusStats arche={arche} attr={attr} corps={corps} bonusStats={bonusStats} />
+            {!ajustementsAffiches && (
+              <BonusStats
+                arche={arche}
+                attr={attr}
+                corps={corps}
+                bonusStats={bonusStats}
+              />
+            )}
           </span>
 
           <span className="ligne-valeur">
@@ -224,16 +209,22 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
           <div className="barre">
 
             <div
-              className="barre-gain z-1"
+              className={
+                'barre-base ' +
+                (
+                  !investi
+                    ? ''
+                    : valeurAvecAjustement < 60
+                      ? '!bg-red-500'
+                      : valeurAvecAjustement < 75
+                        ? '!bg-orange-400'
+                        : valeurAvecAjustement <= 85
+                          ? '!bg-green-700'
+                          : '!bg-lime-500'
+                )
+              }
               style={{
                 width: borne(valeurAvecAjustement) + '%'
-              }}
-            />
-
-            <div
-              className="barre-base"
-              style={{
-                width: reg.base + '%'
               }}
             />
 
