@@ -150,144 +150,6 @@ export default function App() {
     setBonusStats(nouveauxBonus)
   }, [maitrises, installations])
 
-  // CLASSEMENTS DES ATTRIBUTS
-  const classementsAttributs = useMemo(() => {
-    const attributs = attributsVisibles(arche)
-
-    const obtenirAjustement = (attr) => {
-      const taillePoids = calculerAjustementTaillePoids({ attr, corps, arche })
-      const bonusMaitriseInstallation = bonusStats?.[attr.id] || 0
-      return taillePoids + bonusMaitriseInstallation
-    }
-
-    const obtenirStatActuelle = (attr) => {
-      const r = reglage(arche, attr.id)
-      return stats?.[attr.id] ?? r.base
-    }
-
-    const calculerCoutRestant = (attr, niveauActuel, cible) => {
-      if (niveauActuel >= cible) return 0
-      return coutCumule(arche, attr.id, niveauActuel, cible)
-    }
-
-    const construireClassementBrut = (cibleType) => {
-      return attributs
-        .map((attr) => {
-          const r = reglage(arche, attr.id)
-          const statActuelle = obtenirStatActuelle(attr)
-          const cible = cibleType === 'max'
-            ? r.max
-            : Math.min(Number(cibleType), r.max)
-
-          const niveauDepart = Math.max(
-            r.min,
-            Math.min(statActuelle, r.max)
-          )
-
-          const cout = calculerCoutRestant(attr, niveauDepart, cible)
-
-          return {
-            id: attr.id,
-            nom: attr.nom || attr.label || attr.id,
-            categorie: attr.categorie,
-            min: r.min,
-            actuel: statActuelle,
-            max: r.max,
-            cible,
-            depart: niveauDepart,
-            cout,
-            ajustement: 0,
-          }
-        })
-        .filter(Boolean)
-        .sort((a, b) => {
-          if (a.cout !== b.cout) return a.cout - b.cout
-          if (a.actuel !== b.actuel) return a.actuel - b.actuel
-          return a.nom.localeCompare(b.nom)
-        })
-    }
-
-    const construireClassementEffectif = (cibleType) => {
-      return attributs
-        .map((attr) => {
-          const r = reglage(arche, attr.id)
-          const statActuelle = obtenirStatActuelle(attr)
-          const ajustement = obtenirAjustement(attr)
-          const valeurEffectiveActuelle = statActuelle + ajustement
-
-          const cible = cibleType === 'max'
-            ? r.max
-            : Math.min(Number(cibleType), r.max)
-
-          if (valeurEffectiveActuelle >= cible) {
-            return {
-              id: attr.id,
-              nom: attr.nom || attr.label || attr.id,
-              categorie: attr.categorie,
-              min: r.min,
-              actuel: statActuelle,
-              actuelEffectif: valeurEffectiveActuelle,
-              max: r.max,
-              cible,
-              depart: statActuelle,
-              niveauNecessaire: statActuelle,
-              cout: 0,
-              ajustement,
-            }
-          }
-
-          const niveauNecessaire = Math.max(r.min, cible - ajustement)
-          if (niveauNecessaire > r.max) return null
-
-          const niveauDepart = Math.max(
-            r.min,
-            Math.min(statActuelle, r.max)
-          )
-
-          const cout = calculerCoutRestant(
-            attr,
-            niveauDepart,
-            niveauNecessaire
-          )
-
-          return {
-            id: attr.id,
-            nom: attr.nom || attr.label || attr.id,
-            categorie: attr.categorie,
-            min: r.min,
-            actuel: statActuelle,
-            actuelEffectif: valeurEffectiveActuelle,
-            max: r.max,
-            niveauNecessaire,
-            cible,
-            depart: niveauDepart,
-            cout,
-            ajustement,
-          }
-        })
-        .filter(Boolean)
-        .sort((a, b) => {
-          if (a.cout !== b.cout) return a.cout - b.cout
-          if (a.actuel !== b.actuel) return a.actuel - b.actuel
-          return a.nom.localeCompare(b.nom)
-        })
-    }
-
-    return {
-      brut: {
-        minMax: construireClassementBrut('max'),
-        min80: construireClassementBrut(80),
-        min85: construireClassementBrut(85),
-        min90: construireClassementBrut(90),
-      },
-      effectif: {
-        minMax: construireClassementEffectif('max'),
-        min80: construireClassementEffectif(80),
-        min85: construireClassementEffectif(85),
-        min90: construireClassementEffectif(90),
-      },
-    }
-  }, [arche, corps, bonusStats, stats])
 
   // MODIFICATION D'UN ATTRIBUT
   function ajuster(attrId, sens) {
@@ -373,8 +235,10 @@ export default function App() {
       </main>
 
       <ClassementsAttributs
-        classements={classementsAttributs}
         arche={arche}
+        corps={corps}
+        stats={stats}
+        bonusStats={bonusStats}
       />
 
       <div className="ap-mobile" aria-hidden="true">
