@@ -17,6 +17,7 @@ import {
 import { NB_SLOTS } from './lib/playstyles.js'
 import { INSTALLATIONS } from './lib/installations.js'
 import { encodeBuild, decodeBuild } from './lib/partage.js'
+import Header from './front/section/Header.jsx'
 
 const slotsVides = () => Array(NB_SLOTS).fill(null)
 
@@ -49,7 +50,6 @@ export default function App() {
   const [corps, setCorps] = useState(depart.corps)
   const [slots, setSlots] = useState(depart.slots)
   const [installations, setInstallations] = useState(depart.installations)
-  const [copie, setCopie] = useState(false)
   const [bonusStats, setBonusStats] = useState({})
   const [maitrises, setMaitrises] = useState({})
   const [ajustementsAffiches, setAjustementsAffiches] = useState(false)
@@ -157,50 +157,17 @@ export default function App() {
     })
   }
 
-  function copierLien() {
-    const url = window.location.origin + window.location.pathname + lien
-    navigator.clipboard.writeText(url).then(() => {
-      setCopie(true)
-      setTimeout(() => setCopie(false), 2000)
-    })
-  }
+  
 
   return (
     <div className="app">
-      <header className="app-header mt-2">
-        <div>
-          <div className="marque">
-            <span className="marque-jeu">FC 27</span>
-            <h1>Constructeur de build Clubs Pro</h1>
-          </div>
-
-          <p className="accroche">
-            Choisis un archétype, dépense tes points d'attribut, vois le prix du point suivant
-            monter en temps réel.
-          </p>
-
-        </div>
-
-        <div className="actions">
-          <button className="bouton" onClick={copierLien}>
-            {copie ? 'Lien copié' : 'Copier le lien du build'}
-          </button>
-          <button className="bouton fantome" onClick={reinitialiser}>
-            Tout remettre à zéro
-          </button>
-          <button
-            type="button"
-            onClick={() => setAjustementsAffiches((v) => !v)}
-            className={
-              'bouton fantome' +
-              (ajustementsAffiches ? ' actif' : '')
-            }
-          >
-            {ajustementsAffiches ? '↺ Masquer les ajustements' : '+/− Afficher les ajustements'}
-          </button>
-        </div>
-
-      </header>
+      
+      <Header
+      ajustementsAffiches={ajustementsAffiches}
+      setAjustementsAffiches={setAjustementsAffiches}
+      reinitialiser= {reinitialiser}
+      lien={lien}
+      />
 
 
       <ArchetypeSelector
