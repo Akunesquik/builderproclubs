@@ -10,6 +10,7 @@ import { NB_SLOTS } from './lib/playstyles.js'
 import { encodeBuild, decodeBuild } from './lib/partage.js'
 import Header from './front/section/Header.jsx'
 import InfosPro from './front/section/InfosPro.jsx'
+import { calculerBonusStats } from './lib/bonusStats.js'
 
 const slotsVides = () => Array(NB_SLOTS).fill(null)
 
@@ -47,10 +48,17 @@ export default function App() {
   const [corps, setCorps] = useState(depart.corps)
   const [slots, setSlots] = useState(depart.slots)
   const [installations, setInstallations] = useState(depart.installations)
-  const [bonusStats, setBonusStats] = useState({})
   const [maitrises, setMaitrises] = useState(depart.maitrises)
   const [genre, setGenre] = useState(depart.genre)
   const [ajustementsAffiches, setAjustementsAffiches] = useState(false)
+  const bonusStats = useMemo(
+    () => calculerBonusStats({
+      maitrises,
+      installations,
+      data: DATA,
+    }),
+    [maitrises, installations]
+  )
 
   // ARCHETYPE ACTUEL
   const arche = DATA.archetypes.find((a) => a.id === archeId)
@@ -112,61 +120,6 @@ export default function App() {
     window.history.replaceState(null, '', lien)
   }, [lien])
 
-  // CALCUL DES BONUS / MALUS
-  useEffect(() => {
-    const nouveauxBonus = {}
-
-    // MAÎTRISES
-    Object.entries(maitrises).forEach(([archetypeId, niveaux]) => {
-      const maitrise = DATA.maitrise?.[archetypeId]
-      if (!maitrise) return
-
-      niveaux.forEach((niveauMaitrise) => {
-        const bonus = maitrise[String(niveauMaitrise)] || []
-
-        bonus.forEach(({ attribut, gain }) => {
-          nouveauxBonus[attribut] =
-            (nouveauxBonus[attribut] || 0) + gain
-        })
-      })
-    })
-
-    // INSTALLATIONS
-    Object.entries(installations).forEach(
-      ([installationId, niveauInstallation]) => {
-        const installation = DATA.installationsClub?.find(
-          (inst) => inst.id === installationId
-        )
-
-        if (!installation) return
-
-        const niveauData =
-          installation.niveaux[niveauInstallation - 1]
-
-        if (!niveauData?.bonus) return
-
-        niveauData.bonus.split('//').forEach((line) => {
-          const match = line.trim().match(/^(.+?)\s+\+(\d+)$/)
-          if (!match) return
-
-          const nomAttribut = match[1].trim()
-          const gain = Number(match[2])
-
-          const attribut = DATA.attributs.find(
-            (attr) =>
-              attr.id.toLowerCase() === nomAttribut.toLowerCase()
-          )
-
-          if (!attribut) return
-
-          nouveauxBonus[attribut.id] =
-            (nouveauxBonus[attribut.id] || 0) + gain
-        })
-      }
-    )
-
-    setBonusStats(nouveauxBonus)
-  }, [maitrises, installations])
 
   return (
     <div className="app">
