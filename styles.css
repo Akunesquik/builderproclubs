@@ -1223,10 +1223,10 @@ h2 {
   display: grid;
   grid-template-columns: minmax(180px, 1fr) minmax(160px, 1fr) minmax(160px, 1fr) minmax(160px, 1fr);
   gap: 0 20px;
-  padding: 12px 0;
+  padding: 4px 0;
   border-bottom: 1px solid var(--filet);
   font-weight: 600;
-  font-size: 13px;
+  font-size: 16px;
   color: var(--texte);
 }
 
@@ -1242,6 +1242,7 @@ h2 {
 .table-cell-header {
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .installation-name {
