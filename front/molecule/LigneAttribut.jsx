@@ -158,14 +158,20 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
 
       {/* BOUTON - */}
       <button
-        className="pas"
+        className="pas  !leading-none flex flex-col"
         onMouseDown={() => handleMouseDown(-1)}
         onMouseUp={stopRepeatingChange}
         onMouseLeave={stopRepeatingChange}
         disabled={valeur <= reg.min}
         aria-label={'Baisser ' + attr.nom}
       >
-        −
+        <span className="pas-signe">
+          -
+        </span>
+        <span className='pas-cout'>
+          {valeur - 1 >= reg.min ? coutPoint(arche, attr.id, valeur - 1) : ''}
+        </span>
+
       </button>
 
       <div className="ligne-corps">

@@ -82,11 +82,11 @@ export default function InfosPro({arche, corps, setCorps, stats, bonusStats, gen
           {/* Colonne 4 : Type de course */}
           <div className="w-full">
             {typeCourse ? (
-              <div className="flex flex-col items-center justify-center gap-0.5 rounded border border-green-500/50 bg-green-500/10 px-2 py-1.5 w-full">
+              <div className= {"flex flex-col items-center justify-center gap-0.5 rounded border px-2 py-1.5 w-full " + typeCourse.color }>
                 <span className="text-[10px] text-gray-400 uppercase tracking-wide leading-tight">
                   Type de course
                 </span>
-                <span className="text-sm font-bold text-green-400 leading-tight">
+                <span className="text-sm font-bold leading-tight">
                   {typeCourse.nom}
                 </span>
               </div>

@@ -134,7 +134,6 @@ export default function PlaystylePanel({arche,stats,restant,deja,onChoisir,onRet
                         return (
                           <button
                             key={item.ps.nom}
-                            disabled={estPlayStyleGold}
                             className={
                               `flex shrink-0 flex-row items-center gap-2 rounded border p-2 transition ` +
                               (item.pris || estPlayStyleGold
@@ -155,38 +154,27 @@ export default function PlaystylePanel({arche,stats,restant,deja,onChoisir,onRet
                               if (estPlayStyleGold) {
                                 return
                               }
-
                               if (item.pris) {
                                 onRetirer(item.ps.nom)
                                 return
                               }
-
-                              if (
-                                item.cout > 0 &&
-                                item.cout > restant
-                              ) {
+                              if (item.cout > 0 && item.cout > restant) {
                                 return
                               }
 
                               onChoisir(item.ps)
                             }}
-                            onMouseEnter={() =>
+                            onMouseEnter={() => {
                               setHoveredPs(item)
-                            }
+                            }}
                             onMouseLeave={() =>
                               setHoveredPs(null)
                             }
                           >
                             <span className="relative flex shrink-0 items-center justify-center">
-                              {!item.ouvert &&
-                              !estPlayStyleGold ? (
+                              {!item.ouvert && !estPlayStyleGold ? (
                                 <span
-                                  className="
-                                    absolute
-                                    z-10
-                                    text-xl
-                                    drop-shadow
-                                  "
+                                  className=" absolute z-10 text-xl drop-shadow -top-2 -left-2 "
                                   aria-label="PlayStyle verrouillé"
                                 >
                                   🔒
@@ -194,22 +182,14 @@ export default function PlaystylePanel({arche,stats,restant,deja,onChoisir,onRet
                               ) : null}
 
                               <img
-                                src={`${import.meta.env.BASE_URL}img/playstyles/${
-                                  estPlayStyleGold
-                                    ? 'gold'
-                                    : 'silver'
-                                }/${NOM_FR_PLAYSTYLE[item.ps.nom]}.png`}
+                                src={`${import.meta.env.BASE_URL}img/playstyles/${ estPlayStyleGold ? 'gold' : 'silver'}/${NOM_FR_PLAYSTYLE[item.ps.nom]}.png`}
                                 alt={item.ps.nom}
                                 className="h-15 object-contain transition-transform duration-200 hover:scale-105"
                               />
 
-                              {item.cout > restant &&
-                              item.cout > 0 ? (
-                                <span
-                                  className="absolute inset-0"
-                                  aria-label="AP insuffisants"
-                                />
-                              ) : null}
+                              {item.cout > restant && item.cout > 0 ? (
+                                  <span  className="absolute inset-0"  aria-label="AP insuffisants"/>
+                                ) : null}
                             </span>
                           </button>
                         )
@@ -233,21 +213,10 @@ export default function PlaystylePanel({arche,stats,restant,deja,onChoisir,onRet
                   <div className="mt-2 w-full text-left">
                     {hoveredPs.detail?.length > 0 ? (
                       hoveredPs.detail.map((detail) => (
-                        <div
-                          key={detail.attribut}
-                          className="mb-2 flex items-baseline gap-1"
-                        >
-                          <span>
-                            {detail.nom} :
-                          </span>
-
-                          <span>
-                            {detail.actuel} ➔
-                          </span>
-
-                          <strong className="font-bold text-green-400">
-                            {detail.seuil}
-                          </strong>
+                        <div  key={detail.attribut}  className="mb-2 flex items-baseline gap-1">
+                          <span> {detail.nom} :</span>
+                          <span> {detail.actuel} ➔</span>
+                          <strong className="font-bold text-green-400"> {detail.seuil} </strong>
                         </div>
                       ))
                     ) : (
