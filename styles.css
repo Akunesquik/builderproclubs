@@ -1303,3 +1303,232 @@ h2 {
   overflow-y: auto;
   margin-top: 12px;
 }
+
+.classements-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  width: 100%;
+}
+
+.classement-colonne {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #374151;
+  border-radius: 0.5rem;
+  background: #111827;
+}
+
+.classement-colonne h3 {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #374151;
+  background: #1f2937;
+  color: #f3f4f6;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.classement-liste {
+  display: flex;
+  flex-direction: column;
+}
+
+.classement-ligne {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 48px;
+  padding: 0.45rem 0.65rem;
+  border-bottom: 1px solid #1f2937;
+  transition: background-color 0.15s ease;
+}
+
+.classement-ligne:last-child {
+  border-bottom: none;
+}
+
+.classement-ligne:hover {
+  background: #1f2937;
+}
+
+.classement-rang {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 0.25rem;
+  background: #374151;
+  color: #d1d5db;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.classement-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.classement-nom {
+  overflow: hidden;
+  color: #f3f4f6;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.classement-details {
+  margin-top: 2px;
+  color: #9ca3af;
+  font-size: 0.7rem;
+}
+
+.classement-cout {
+  flex-shrink: 0;
+  color: #facc15;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Tablette */
+@media (max-width: 1200px) {
+  .classements-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+  .classements-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.classements-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #374151;
+  border-radius: 0.5rem;
+  background: #111827;
+}
+
+.classements-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.classements-header h2 {
+  margin: 0;
+  color: #f3f4f6;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.classements-archetype {
+  margin: 0.2rem 0 0;
+  color: #9ca3af;
+  font-size: 0.8rem;
+}
+
+.classements-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #d1d5db;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.classements-toggle-track {
+  position: relative;
+  display: block;
+  width: 42px;
+  height: 24px;
+  flex-shrink: 0;
+  border: 1px solid #4b5563;
+  border-radius: 999px;
+  background: #374151;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.classements-toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #9ca3af;
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.classements-toggle.active .classements-toggle-track {
+  border-color: var(--ambre);
+  background: var(--ambre);
+}
+
+.classements-toggle.active .classements-toggle-thumb {
+  transform: translateX(18px);
+  background: #1a1206;
+}
+
+.classements-toggle:hover .classements-toggle-track {
+  border-color: #6b7280;
+}
+
+.classements-toggle.active:hover .classements-toggle-track {
+  border-color: var(--ambre);
+}
+
+.classements-toggle-label {
+  white-space: nowrap;
+  color: #d1d5db;
+}
+
+.classements-toggle.active .classements-toggle-label {
+  color: var(--ambre);
+}
+
+.classements-explication {
+  margin: 0;
+  padding-top: 0.6rem;
+  border-top: 1px solid #374151;
+  color: #9ca3af;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .classements-header-top {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .classements-toggle {
+    width: 100%;
+  }
+}
+
+.classements{
+  margin-top: 20px;
+}
