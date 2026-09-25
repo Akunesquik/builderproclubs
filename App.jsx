@@ -52,6 +52,7 @@ export default function App() {
   const [copie, setCopie] = useState(false)
   const [bonusStats, setBonusStats] = useState({})
   const [maitrises, setMaitrises] = useState({})
+  const [ajustementsAffiches, setAjustementsAffiches] = useState(false)
 
   const arche = DATA.archetypes.find((a) => a.id === archeId)
 
@@ -187,6 +188,16 @@ export default function App() {
           <button className="bouton fantome" onClick={reinitialiser}>
             Tout remettre à zéro
           </button>
+          <button
+            type="button"
+            onClick={() => setAjustementsAffiches((v) => !v)}
+            className={
+              'bouton fantome' +
+              (ajustementsAffiches ? ' actif' : '')
+            }
+          >
+            {ajustementsAffiches ? '↺ Masquer les ajustements' : '+/− Afficher les ajustements'}
+          </button>
         </div>
 
       </header>
@@ -231,6 +242,7 @@ export default function App() {
             setCorps={setCorps}
             bonusStats={bonusStats}
             setBonusStats={setBonusStats}
+            ajustementsAffiches={ajustementsAffiches}
           />
         ))}
       </main>

@@ -1,9 +1,10 @@
-import { useRef, useCallback, useState, useEffect } from 'react'
+import { useRef, useCallback, useState, useEffect, useMemo } from 'react'
 import { estEtoiles, coutPoint } from '../../lib/couts.js'
+import { calculerAjustementTaillePoids } from '../../lib/taillePoids.js'
 import Etoiles from './Etoiles.jsx'
 import BonusStats from './BonusStats.jsx'
 
-export default function LigneAttribut({ attr, reg, valeur, cout, abordable, restant, onChange, arche, corps, bonusStats }) {
+export default function LigneAttribut({ attr, reg, valeur, cout, abordable, restant, onChange, arche, corps, bonusStats, ajustementsAffiches }) {
   const etoiles = estEtoiles(reg)
   const investi = valeur > reg.base
   const borne = (x) => Math.max(0, Math.min(100, x))
@@ -17,6 +18,14 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
   const intervalRef = useRef(null)
 
   const [valeurAffichee, setValeurAffichee] = useState(valeur)
+
+  // Bonus/malus taille-poids + maîtrise pour cette ligne
+  const ajustement = useMemo(() => {
+    const taillepoids = calculerAjustementTaillePoids({ attr, corps, arche })
+    const bonusMaitrise = bonusStats?.[attr.id] || 0
+
+    return taillepoids + bonusMaitrise
+  }, [attr, corps, arche, bonusStats])
 
   // Synchronisation avec le parent
   useEffect(() => {
@@ -161,6 +170,11 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
     startRepeatingChange(amount)
   }
 
+  // Valeur affichée en tenant compte du bonus/malus si le bouton central est activé
+  const valeurAvecAjustement = ajustementsAffiches
+    ? Math.max(0, Math.min(99, valeurAffichee + ajustement))
+    : valeurAffichee
+
   return (
     <div className={'ligne' + (investi ? ' investie' : '')}>
 
@@ -196,7 +210,7 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
               />
             ) : (
               <>
-                {valeurAffichee}
+                {valeurAvecAjustement}
                 <small className="ligne-plafond">
                   /{reg.max}
                 </small>
@@ -212,7 +226,7 @@ export default function LigneAttribut({ attr, reg, valeur, cout, abordable, rest
             <div
               className="barre-gain z-1"
               style={{
-                width: borne(valeurAffichee) + '%'
+                width: borne(valeurAvecAjustement) + '%'
               }}
             />
 

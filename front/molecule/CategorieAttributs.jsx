@@ -2,7 +2,7 @@ import { reglage, coutPoint, moyenne } from '../../lib/couts.js'
 import LigneAttribut from './LigneAttribut.jsx'
 import Curseur from './Curseur.jsx'
 
-export default function CategorieAttributs({ categorie, attributs, arche, stats, restant, onAjuster, corps, setCorps, bonusStats }) {
+export default function CategorieAttributs({ categorie, attributs, arche, stats, restant, onAjuster, corps, setCorps, bonusStats, ajustementsAffiches }) {
   return (
     <section className={categorie === 'Physique' ? "flex-2" : "flex-1 " + "min-w-[260px]" } >
       <div className="flex justify-between items-center categorie-tete">
@@ -31,6 +31,7 @@ export default function CategorieAttributs({ categorie, attributs, arche, stats,
               arche={arche}
               corps={corps}
               bonusStats={bonusStats}
+              ajustementsAffiches={ajustementsAffiches}
             />
           )
         })}
