@@ -5,40 +5,37 @@ import ArchetypeSelector from './front/section/ArchetypeSelector.jsx'
 import ListeAttributs from './front/molecule/ListeAttributs.jsx'
 import Bandeau from './front/section/Bandeau.jsx'
 import ClassementsAttributs from './front/section/ClassementsAttributs.jsx'
-import {
-  reglage, coutPoint, coutCumule, totalDepense, statsInitiales,
-  budgetNiveau, attributsParCategorie, attributsVisibles,
-} from './lib/couts.js'
-import { calculerAjustementTaillePoids } from './lib/taillePoids.js'
+import { totalDepense, statsInitiales, budgetNiveau, attributsParCategorie} from './lib/couts.js'
 import { NB_SLOTS } from './lib/playstyles.js'
 import { encodeBuild, decodeBuild } from './lib/partage.js'
 import Header from './front/section/Header.jsx'
 import InfosPro from './front/section/InfosPro.jsx'
 
 const slotsVides = () => Array(NB_SLOTS).fill(null)
+
 const corpsInitial = (arche) => ({
-  taille: arche.corps ? arche.corps.taille.base : 180,
-  poids: arche.corps ? arche.corps.poids.base : 78,
+  taille: arche.corps?.taille.base ?? 180,
+  poids: arche.corps?.poids.base ?? 78,
 })
 
 export default function App() {
   // BUILD INITIAL
   const depart = useMemo(() => {
     const lu = decodeBuild(window.location.hash)
-    const arche = (lu && lu.arche) || DATA.archetypes[0]
+    const arche = lu?.arche || DATA.archetypes[0]
 
     return {
       arche,
-      niveau: (lu && lu.niveau) || 40,
-      stats: (lu && lu.stats) || statsInitiales(arche),
-      corps: (lu && lu.corps) || corpsInitial(arche),
-      slots: lu && lu.slots ? lu.slots.slice(0, NB_SLOTS) : slotsVides(),
-      installations: lu && lu.installations ? lu.installations : {},
-      spec: (lu && lu.spec) ||
+      niveau: lu?.niveau || 40,
+      stats: lu?.stats || statsInitiales(arche),
+      corps: lu?.corps || corpsInitial(arche),
+      slots: lu?.slots?.slice(0, NB_SLOTS) || slotsVides(),
+      installations: lu?.installations || {},
+      spec: lu?.spec ||
         arche.specialisations?.find((s) => s.nom === 'Aucune') ||
         arche.specialisations?.[0] || null,
-      maitrises: (lu && lu.maitrises) || {},
-      genre: (lu && lu.genre) || 'H',
+      maitrises: lu?.maitrises || {},
+      genre: lu?.genre || 'H',
     }
   }, [])
 
@@ -78,23 +75,34 @@ export default function App() {
     setStats(statsInitiales(arche))
     setSlots(slotsVides())
     setCorps(corpsInitial(arche))
-    setSpec(arche.specialisations?.find((s) => s.nom === 'Aucune') || arche.specialisations?.[0] || null)
+    setSpec(
+      arche.specialisations?.find((s) => s.nom === 'Aucune') ||
+      arche.specialisations?.[0] || null
+    )
     setInstallations({})
     setMaitrises({})
   }
 
   // ATTRIBUTS PAR CATEGORIE
-  const parCategorie = useMemo(() => attributsParCategorie(arche), [arche])
+  const parCategorie = useMemo(
+    () => attributsParCategorie(arche),
+    [arche]
+  )
 
   // DEPENSES DU BUILD
-  const depenses = useMemo(() => totalDepense(arche, stats), [arche, stats])
+  const depenses = useMemo(
+    () => totalDepense(arche, stats),
+    [arche, stats]
+  )
+
   const budget = budgetNiveau(niveau)
   const restant = budget - depenses
 
   // URL DE PARTAGE
   const lien = useMemo(
     () => encodeBuild({
-      arche, niveau, stats, corps, slots, installations, spec, maitrises, genre,
+      arche, niveau, stats, corps, slots,
+      installations, spec, maitrises, genre,
     }),
     [arche, niveau, stats, corps, slots, installations, spec, maitrises, genre]
   )
@@ -117,55 +125,48 @@ export default function App() {
         const bonus = maitrise[String(niveauMaitrise)] || []
 
         bonus.forEach(({ attribut, gain }) => {
-          nouveauxBonus[attribut] = (nouveauxBonus[attribut] || 0) + gain
+          nouveauxBonus[attribut] =
+            (nouveauxBonus[attribut] || 0) + gain
         })
       })
     })
 
     // INSTALLATIONS
-    Object.entries(installations).forEach(([installationId, niveauInstallation]) => {
-      const installation = DATA.installationsClub?.find(
-        (inst) => inst.id === installationId
-      )
-      if (!installation) return
-
-      const niveauData = installation.niveaux[niveauInstallation - 1]
-      if (!niveauData?.bonus) return
-
-      niveauData.bonus.split('//').forEach((line) => {
-        const match = line.trim().match(/^(.+?)\s+\+(\d+)$/)
-        if (!match) return
-
-        const nomAttribut = match[1].trim()
-        const gain = Number(match[2])
-        const attribut = DATA.attributs.find(
-          (attr) => attr.id.toLowerCase() === nomAttribut.toLowerCase()
+    Object.entries(installations).forEach(
+      ([installationId, niveauInstallation]) => {
+        const installation = DATA.installationsClub?.find(
+          (inst) => inst.id === installationId
         )
-        if (!attribut) return
 
-        nouveauxBonus[attribut.id] = (nouveauxBonus[attribut.id] || 0) + gain
-      })
-    })
+        if (!installation) return
+
+        const niveauData =
+          installation.niveaux[niveauInstallation - 1]
+
+        if (!niveauData?.bonus) return
+
+        niveauData.bonus.split('//').forEach((line) => {
+          const match = line.trim().match(/^(.+?)\s+\+(\d+)$/)
+          if (!match) return
+
+          const nomAttribut = match[1].trim()
+          const gain = Number(match[2])
+
+          const attribut = DATA.attributs.find(
+            (attr) =>
+              attr.id.toLowerCase() === nomAttribut.toLowerCase()
+          )
+
+          if (!attribut) return
+
+          nouveauxBonus[attribut.id] =
+            (nouveauxBonus[attribut.id] || 0) + gain
+        })
+      }
+    )
 
     setBonusStats(nouveauxBonus)
   }, [maitrises, installations])
-
-
-  // MODIFICATION D'UN ATTRIBUT
-  function ajuster(attrId, sens) {
-    setStats((s) => {
-      const r = reglage(arche, attrId)
-      const v = s[attrId] ?? r.base
-
-      if (sens > 0) {
-        if (coutPoint(arche, attrId, v) === null) return s
-        return { ...s, [attrId]: v + 1 }
-      }
-
-      if (v <= r.min) return s
-      return { ...s, [attrId]: v - 1 }
-    })
-  }
 
   return (
     <div className="app">
@@ -224,11 +225,10 @@ export default function App() {
             attributs={attrs}
             arche={arche}
             stats={stats}
+            setStats={setStats}
             restant={restant}
-            onAjuster={ajuster}
             corps={corps}
             bonusStats={bonusStats}
-            setBonusStats={setBonusStats}
             ajustementsAffiches={ajustementsAffiches}
           />
         ))}

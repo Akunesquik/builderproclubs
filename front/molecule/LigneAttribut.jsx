@@ -1,27 +1,20 @@
 import { useRef, useCallback, useState, useEffect, useMemo } from 'react'
-import { estEtoiles, coutPoint } from '../../lib/couts.js'
+import { estEtoiles, coutPoint, reglage } from '../../lib/couts.js'
 import { calculerAjustementTaillePoids } from '../../lib/taillePoids.js'
 import Etoiles from './composants/Etoiles.jsx'
 import BonusStats from './composants/BonusStats.jsx'
 
-export default function LigneAttribut({
-  attr,
-  reg,
-  valeur,
-  cout,
-  abordable,
-  restant,
-  onChange,
-  arche,
-  corps,
-  bonusStats,
-  ajustementsAffiches
-}) {
+export default function LigneAttribut({ attr, reg, valeur, cout, abordable, restant, arche, corps, bonusStats, ajustementsAffiches, setStats})  {
   const etoiles = estEtoiles(reg)
   const investi = valeur > reg.base
+  const dragging = useRef(false)
+  const valeurRef = useRef(valeur)
+  const restantRef = useRef(restant)
+  const intervalRef = useRef(null)
 
-  const borne = (x) =>
-    Math.max(0, Math.min(100, x))
+  const [valeurAffichee, setValeurAffichee] = useState(valeur)
+
+  const borne = (x) => Math.max(0, Math.min(100, x))
 
   const couleurBarre = (valeur) => {
     if (valeur < 50) return '#ef4444'
@@ -30,17 +23,7 @@ export default function LigneAttribut({
     return '#84cc16'
   }
 
-  const dragging = useRef(false)
-
-  // Valeurs locales toujours à jour pendant le clic maintenu
-  const valeurRef = useRef(valeur)
-  const restantRef = useRef(restant)
-
-  const intervalRef = useRef(null)
-
-  const [valeurAffichee, setValeurAffichee] = useState(valeur)
-
-  // Bonus/malus taille-poids + maîtrise pour cette ligne
+  // Bonus/malus taille-poids + maîtrise
   const ajustement = useMemo(() => {
     const taillepoids = calculerAjustementTaillePoids({
       attr,
@@ -48,8 +31,7 @@ export default function LigneAttribut({
       arche
     })
 
-    const bonusMaitrise =
-      bonusStats?.[attr.id] || 0
+    const bonusMaitrise = bonusStats?.[attr.id] || 0
 
     return taillepoids + bonusMaitrise
   }, [attr, corps, arche, bonusStats])
@@ -64,6 +46,37 @@ export default function LigneAttribut({
     }
   }, [valeur, restant])
 
+  // Modification réelle de la stat
+  const ajuster = useCallback(
+    (sens) => {
+      setStats((stats) => {
+        const reglageAttribut = reglage(arche, attr.id)
+        const valeurActuelle = stats[attr.id] ?? reglageAttribut.base
+
+        if (sens > 0) {
+          if (coutPoint(arche, attr.id, valeurActuelle) === null) {
+            return stats
+          }
+
+          return {
+            ...stats,
+            [attr.id]: valeurActuelle + 1
+          }
+        }
+
+        if (valeurActuelle <= reglageAttribut.min) {
+          return stats
+        }
+
+        return {
+          ...stats,
+          [attr.id]: valeurActuelle - 1
+        }
+      })
+    },
+    [arche, attr.id, setStats]
+  )
+
   const stopRepeatingChange = useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
@@ -71,48 +84,37 @@ export default function LigneAttribut({
     }
   }, [])
 
+  // Changement local + modification réelle du build
   const appliquerChangement = useCallback(
     (amount) => {
       const valeurActuelle = valeurRef.current
       const restantActuel = restantRef.current
 
-      // =========================
-      // AUGMENTATION
-      // =========================
       if (amount > 0) {
         if (valeurActuelle >= reg.max) {
           return false
         }
 
-        const cout = coutPoint(
-          arche,
-          attr.id,
-          valeurActuelle
-        ) || 0
+        const coutActuel =
+          coutPoint(arche, attr.id, valeurActuelle) || 0
 
-        // Pas assez de points
-        if (restantActuel < cout) {
+        if (restantActuel < coutActuel) {
           return false
         }
 
-        // Mise à jour locale immédiate
         valeurRef.current = Math.min(
           reg.max,
           valeurActuelle + amount
         )
 
-        restantRef.current -= cout
+        restantRef.current -= coutActuel
 
         setValeurAffichee(valeurRef.current)
-
-        onChange(amount)
+        ajuster(1)
 
         return true
       }
 
-      // =========================
-      // DIMINUTION
-      // =========================
       if (amount < 0) {
         if (valeurActuelle <= reg.min) {
           return false
@@ -124,112 +126,66 @@ export default function LigneAttribut({
         )
 
         setValeurAffichee(valeurRef.current)
-
-        onChange(amount)
+        ajuster(-1)
 
         return true
       }
 
       return false
     },
-    [
-      arche,
-      attr.id,
-      reg.max,
-      reg.min,
-      onChange
-    ]
+    [arche, attr.id, reg.max, reg.min, ajuster]
   )
 
   // Gestion du clic maintenu
   const startRepeatingChange = useCallback(
     (amount) => {
-      // Évite plusieurs intervalles simultanés
       stopRepeatingChange()
 
-      // Premier changement immédiat
       const premierChangement =
         appliquerChangement(amount)
 
-      if (!premierChangement) {
-        return
-      }
+      if (!premierChangement) return
 
-      // Répétition
       intervalRef.current = setInterval(() => {
         const changement =
           appliquerChangement(amount)
 
-        // Dès que ce n'est plus possible, on arrête
         if (!changement) {
           stopRepeatingChange()
         }
       }, 100)
     },
-    [
-      appliquerChangement,
-      stopRepeatingChange
-    ]
+    [appliquerChangement, stopRepeatingChange]
   )
 
-  const handleMouseDown = (amount) => {
-    startRepeatingChange(amount)
-  }
-
-  // Valeur affichée en tenant compte du bonus/malus
-  // si le bouton central est activé
   const valeurAvecAjustement = ajustementsAffiches
-    ? Math.max(
-        0,
-        Math.min(
-          99,
-          valeurAffichee + ajustement
-        )
-      )
+    ? Math.max(0, Math.min(99, valeurAffichee + ajustement))
     : valeurAffichee
 
   return (
-    <div
-      className={
-        'ligne' +
-        (investi ? ' investie' : '')
-      }
-    >
-
-      {/* BOUTON - */}
+    <div className={'ligne' + (investi ? ' investie' : '')}>
       <button
-        className="pas  !leading-none flex flex-col"
-        onMouseDown={() => handleMouseDown(-1)}
+        className="pas !leading-none flex flex-col"
+        onMouseDown={() => startRepeatingChange(-1)}
         onMouseUp={stopRepeatingChange}
         onMouseLeave={stopRepeatingChange}
         disabled={valeur <= reg.min}
         aria-label={'Baisser ' + attr.nom}
       >
-        <span className="pas-signe">
-          -
+        <span className="pas-signe">-</span>
+        <span className="pas-cout">
+          {valeur - 1 >= reg.min
+            ? coutPoint(arche, attr.id, valeur - 1)
+            : ''}
         </span>
-        <span className='pas-cout'>
-          {valeur - 1 >= reg.min ? coutPoint(arche, attr.id, valeur - 1) : ''}
-        </span>
-
       </button>
 
       <div className="ligne-corps">
-
         <div className="ligne-tete">
-
           <span className="ligne-nom flex">
-            <span
-              className={
-                reg.cle
-                  ? 'text-green-500'
-                  : ''
-              }
-            >
+            <span className={reg.cle ? 'text-green-500' : ''}>
               {attr.nom}
             </span>
-
-            {' '}
 
             {!ajustementsAffiches && (
               <BonusStats
@@ -250,19 +206,16 @@ export default function LigneAttribut({
             ) : (
               <>
                 {valeurAvecAjustement}
-
                 <small className="ligne-plafond">
                   /{reg.max}
                 </small>
               </>
             )}
           </span>
-
         </div>
 
-        {etoiles ? null : (
+        {!etoiles && (
           <div className="barre">
-
             <div
               className="barre-base"
               style={{
@@ -272,44 +225,26 @@ export default function LigneAttribut({
                   : '#46596a'
               }}
             />
-
           </div>
         )}
-
       </div>
 
-      {/* BOUTON + */}
       <button
         className={
           'pas plus' +
-          (abordable
-            ? ''
-            : ' hors-budget')
+          (abordable ? '' : ' hors-budget')
         }
-        onMouseDown={() =>
-          handleMouseDown(2)
-        }
+        onMouseDown={() => startRepeatingChange(1)}
         onMouseUp={stopRepeatingChange}
         onMouseLeave={stopRepeatingChange}
-        disabled={
-          cout === null ||
-          !abordable
-        }
-        aria-label={
-          'Monter ' + attr.nom
-        }
+        disabled={cout === null || !abordable}
+        aria-label={'Monter ' + attr.nom}
       >
-        <span className="pas-signe">
-          +
-        </span>
-
+        <span className="pas-signe">+</span>
         <span className="pas-cout">
-          {cout === null
-            ? 'max'
-            : cout}
+          {cout === null ? 'max' : cout}
         </span>
       </button>
-
     </div>
   )
 }
