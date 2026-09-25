@@ -20,6 +20,9 @@ const corpsInitial = (arche) => ({
   poids: arche.corps ? arche.corps.poids.base : 78,
 })
 
+// Attributs exclus des classements de coûts (pas pertinents pour le théoricraft de stats)
+const ATTRIBUTS_EXCLUS_CLASSEMENT = ['gestes', 'mauvais_pied']
+
 export default function App() {
   // BUILD INITIAL
   const depart = useMemo(() => {
@@ -154,35 +157,85 @@ export default function App() {
     setBonusStats(nouveauxBonus)
   }, [maitrises, installations])
 
-  // CLASSEMENTS DES ATTRIBUTS
+  /*
+   * ----------------------------------------------------------
+   * CLASSEMENTS DES ATTRIBUTS
+   * ----------------------------------------------------------
+   */
   const classementsAttributs = useMemo(() => {
     const attributs = attributsVisibles(arche)
+      .filter((attr) => !ATTRIBUTS_EXCLUS_CLASSEMENT.includes(attr.id))
 
+    /*
+     * ----------------------------------------------------------
+     * BONUS / MALUS EFFECTIF
+     * ----------------------------------------------------------
+     */
     const obtenirAjustement = (attr) => {
-      const taillePoids = calculerAjustementTaillePoids({ attr, corps, arche })
+      const taillePoids = calculerAjustementTaillePoids({
+        attr,
+        corps,
+        arche,
+      })
+
       const bonusMaitriseInstallation = bonusStats?.[attr.id] || 0
+
       return taillePoids + bonusMaitriseInstallation
     }
 
+    /*
+     * ----------------------------------------------------------
+     * STAT ACTUELLE
+     * ----------------------------------------------------------
+     */
     const obtenirStatActuelle = (attr) => {
       const r = reglage(arche, attr.id)
+
       return stats?.[attr.id] ?? r.base
     }
 
+    /*
+     * ----------------------------------------------------------
+     * CALCUL DU COÛT ENTRE DEUX NIVEAUX
+     * ----------------------------------------------------------
+     */
     const calculerCoutRestant = (attr, niveauActuel, cible) => {
-      if (niveauActuel >= cible) return 0
+      if (niveauActuel >= cible) {
+        return 0
+      }
+
       return coutCumule(arche, attr.id, niveauActuel, cible)
     }
 
+    /*
+     * ----------------------------------------------------------
+     * CLASSEMENT BRUT
+     *
+     * Le classement part de la STAT ACTUELLE du build.
+     *
+     * Exemple :
+     *
+     * Vitesse actuelle = 84
+     * Cible = 90
+     *
+     * => coût de 84 → 90
+     * ----------------------------------------------------------
+     */
     const construireClassementBrut = (cibleType) => {
       return attributs
         .map((attr) => {
           const r = reglage(arche, attr.id)
+
           const statActuelle = obtenirStatActuelle(attr)
+
           const cible = cibleType === 'max'
             ? r.max
             : Math.min(Number(cibleType), r.max)
 
+          /*
+           * Si l'attribut est déjà au-dessus
+           * de la cible, le coût restant est 0.
+           */
           const niveauDepart = Math.max(
             r.min,
             Math.min(statActuelle, r.max)
@@ -194,55 +247,128 @@ export default function App() {
             id: attr.id,
             nom: attr.nom || attr.label || attr.id,
             categorie: attr.categorie,
+
+            // Stat minimale théorique
             min: r.min,
+
+            // Stat actuelle du build
             actuel: statActuelle,
+
             max: r.max,
+
             cible,
+
+            // Niveau à partir duquel on calcule
             depart: niveauDepart,
+
             cout,
+
             ajustement: 0,
           }
         })
         .filter(Boolean)
+        .filter((item) => item.cout > 0)
         .sort((a, b) => {
-          if (a.cout !== b.cout) return a.cout - b.cout
-          if (a.actuel !== b.actuel) return a.actuel - b.actuel
+          // D'abord le coût restant
+          if (a.cout !== b.cout) {
+            return a.cout - b.cout
+          }
+
+          // Puis la valeur actuelle
+          if (a.actuel !== b.actuel) {
+            return a.actuel - b.actuel
+          }
+
           return a.nom.localeCompare(b.nom)
         })
     }
 
+    /*
+     * ----------------------------------------------------------
+     * CLASSEMENT EFFECTIF
+     *
+     * Ici on tient compte des bonus / malus.
+     *
+     * Exemple :
+     *
+     * Stat brute actuelle : 75
+     * Bonus : +5
+     * Valeur effective : 80
+     *
+     * Pour atteindre 90 :
+     *
+     * 85 brut + 5 bonus = 90 effectif
+     *
+     * Le coût est donc 75 → 85.
+     * ----------------------------------------------------------
+     */
     const construireClassementEffectif = (cibleType) => {
       return attributs
         .map((attr) => {
           const r = reglage(arche, attr.id)
+
           const statActuelle = obtenirStatActuelle(attr)
+
           const ajustement = obtenirAjustement(attr)
+
           const valeurEffectiveActuelle = statActuelle + ajustement
 
           const cible = cibleType === 'max'
             ? r.max
             : Math.min(Number(cibleType), r.max)
 
+          /*
+           * Si le build atteint déjà la cible
+           * grâce à ses bonus/malus, aucun AP
+           * supplémentaire n'est nécessaire.
+           */
           if (valeurEffectiveActuelle >= cible) {
             return {
               id: attr.id,
               nom: attr.nom || attr.label || attr.id,
               categorie: attr.categorie,
+
               min: r.min,
               actuel: statActuelle,
               actuelEffectif: valeurEffectiveActuelle,
               max: r.max,
+
               cible,
+
               depart: statActuelle,
+
               niveauNecessaire: statActuelle,
+
               cout: 0,
+
               ajustement,
             }
           }
 
+          /*
+           * Niveau brut nécessaire pour atteindre
+           * la cible avec le bonus/malus.
+           *
+           * Exemple :
+           * cible = 90
+           * bonus = +5
+           * niveau nécessaire = 85
+           */
           const niveauNecessaire = Math.max(r.min, cible - ajustement)
-          if (niveauNecessaire > r.max) return null
 
+          /*
+           * Si le niveau nécessaire dépasse
+           * le maximum autorisé, impossible.
+           */
+          if (niveauNecessaire > r.max) {
+            return null
+          }
+
+          /*
+           * On ne paie que la différence entre
+           * la stat actuelle et le niveau
+           * nécessaire.
+           */
           const niveauDepart = Math.max(
             r.min,
             Math.min(statActuelle, r.max)
@@ -258,21 +384,39 @@ export default function App() {
             id: attr.id,
             nom: attr.nom || attr.label || attr.id,
             categorie: attr.categorie,
+
             min: r.min,
+
             actuel: statActuelle,
+
             actuelEffectif: valeurEffectiveActuelle,
+
             max: r.max,
+
             niveauNecessaire,
+
             cible,
+
             depart: niveauDepart,
+
             cout,
+
             ajustement,
           }
         })
         .filter(Boolean)
+        .filter((item) => item.cout > 0)
         .sort((a, b) => {
-          if (a.cout !== b.cout) return a.cout - b.cout
-          if (a.actuel !== b.actuel) return a.actuel - b.actuel
+          // Classement par AP restant
+          if (a.cout !== b.cout) {
+            return a.cout - b.cout
+          }
+
+          // Puis par valeur actuelle
+          if (a.actuel !== b.actuel) {
+            return a.actuel - b.actuel
+          }
+
           return a.nom.localeCompare(b.nom)
         })
     }
@@ -284,6 +428,7 @@ export default function App() {
         min85: construireClassementBrut(85),
         min90: construireClassementBrut(90),
       },
+
       effectif: {
         minMax: construireClassementEffectif('max'),
         min80: construireClassementEffectif(80),

@@ -1,7 +1,11 @@
+import { useState } from 'react'
+
 export default function ClassementsAttributs({
   classements,
   arche,
 }) {
+  const [avecBonus, setAvecBonus] = useState(false)
+
   const colonnes = [
     {
       id: 'minMax',
@@ -21,6 +25,12 @@ export default function ClassementsAttributs({
     },
   ]
 
+  const cle = avecBonus ? 'effectif' : 'brut'
+
+  const explication = avecBonus
+    ? "Coût en AP pour chaque attribut, en tenant compte de tes bonus/malus actuels (taille, poids, maîtrises, installations du club)."
+    : "Coût en AP pour amener chaque attribut de sa valeur actuelle jusqu'à la cible, sans tenir compte des bonus/malus (taille, poids, maîtrises, installations). Les moins chers en premier : c'est l'ordre le plus rentable pour dépenser tes AP."
+
   const afficherLigne = (item, index) => (
     <div
       key={item.id}
@@ -36,11 +46,20 @@ export default function ClassementsAttributs({
         </div>
 
         <div className="classement-details">
-          {item.actuel} → {item.cible}
+          {avecBonus &&
+          item.actuelEffectif !== undefined
+            ? `${item.actuelEffectif} → ${item.cible}`
+            : `${item.actuel} → ${item.cible}`}
         </div>
       </div>
 
-      <div className="classement-cout">
+      <div
+        className="classement-cout"
+        style={{
+          color: '#f59e0b',
+          fontWeight: 700,
+        }}
+      >
         {item.cout} AP
       </div>
     </div>
@@ -49,28 +68,64 @@ export default function ClassementsAttributs({
   return (
     <section className="classements">
       <div className="classements-header">
-        <div>
-          <h2>
-            Classement des coûts d'attributs
-          </h2>
+        <div className="classements-header-top">
+          <div>
+            <h2>
+              Classement des coûts d'attributs
+            </h2>
 
-          <p className="classements-archetype">
-            {arche.nom}
-          </p>
+            <p className="classements-archetype">
+              {arche.nom}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setAvecBonus((v) => !v)}
+            className={`classements-toggle ${avecBonus ? 'active' : ''}`}
+            aria-pressed={avecBonus}
+          >
+            <span className="classements-toggle-track">
+              <span className="classements-toggle-thumb" />
+            </span>
+
+            <span className="classements-toggle-label">
+              {avecBonus ? 'Avec bonus / malus' : 'Sans bonus / malus'}
+            </span>
+          </button>
         </div>
 
-        <button
-          type="button"
-          className="classements-toggle"
+        <p
+          className="classements-explication"
+          style={{
+            whiteSpace: 'nowrap',
+          }}
         >
-          Sans bonus / malus
-        </button>
+          {explication}
+
+          {avecBonus && (
+            <>
+              {' '}
+              <span
+                style={{
+                  color: '#f59e0b',
+                  fontWeight: 700,
+                }}
+              >
+                ⚠️ Rappel : les bonus/malus ne sont pas
+                pris en compte pour le déblocage des
+                PlayStyles.
+              </span>
+            </>
+          )}
+        </p>
       </div>
 
       <div className="classements-grid">
         {colonnes.map((colonne) => {
           const liste =
-            classements?.brut?.[colonne.id] ?? []
+            classements?.[cle]?.[colonne.id] ??
+            []
 
           return (
             <div
