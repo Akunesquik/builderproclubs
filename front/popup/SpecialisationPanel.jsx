@@ -80,7 +80,7 @@ export default function SpecialisationPanel({ arche, stats, restant, deja, onCho
                     <img
                       src={`${import.meta.env.BASE_URL}img/playstyles/gold/${NOM_FR_PLAYSTYLE[spec.archetypeGagne.slice(0, -1)]}.png`}
                       alt={spec.archetypeGagne}
-                      title={spec.nom}
+                      title={NOM_FR_PLAYSTYLE[spec.archetypeGagne.slice(0, -1)]}
                       className='h-20 '
                       style={{
                         width: 'unset',
