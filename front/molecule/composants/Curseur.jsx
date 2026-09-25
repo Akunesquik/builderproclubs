@@ -1,6 +1,6 @@
 export default function Curseur({ label, unite = '', valeur, min, max, onChange }) {
   return (
-    <label className="champ mt-4 w-full block">
+    <label className="champ w-full">
       <span className="champ-label">
         {label}{' '}
         <strong>

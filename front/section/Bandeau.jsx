@@ -313,14 +313,11 @@ export default function Bandeau({
           <h2>Infos pro</h2>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2 w-full items-start">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2 w-full items-center">
 
           {/* Colonne 1 : Genre */}
-          <div className="w-full">
-            <span className="champ-label block mb-1.5">
-              Genre
-            </span>
-            <div className="flex gap-2">
+          <div className="w-full flex flex-row gap-2 justify-center ">
+            <div className="flex gap-2 w-full items-end">
               <button
                 type="button"
                 onClick={() => setGenre('H')}
@@ -349,7 +346,7 @@ export default function Bandeau({
           </div>
 
           {/* Colonne 2 : Taille */}
-          <div className="w-full -mt-4">
+          <div className="w-full">
             {arche.corps ? (
               <Curseur
                 label="Taille"
@@ -363,7 +360,7 @@ export default function Bandeau({
           </div>
 
           {/* Colonne 3 : Poids */}
-          <div className="w-full -mt-4">
+          <div className="w-full">
             {arche.corps ? (
               <Curseur
                 label="Poids"
