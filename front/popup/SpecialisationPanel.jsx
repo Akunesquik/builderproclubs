@@ -7,11 +7,22 @@ import {
 } from '../../lib/specialisations.js'
 import DATA from '../../data/fc27.json'
 
+import { useLanguage } from '../../i18n/context.jsx'
+
 /**
- * Les 3 spécialisations de l'archétype, une par ligne :
+ * Les 3 spécialisations de l’archétype, une par ligne :
  * icône du PlayStyle+ débloqué // stat 1 // stat 2 // stat 3 // prix en AP.
  */
-export default function SpecialisationPanel({ arche, stats, restant, deja, onChoisir, onFermer }) {
+export default function SpecialisationPanel({
+  arche,
+  stats,
+  restant,
+  deja,
+  onChoisir,
+  onFermer,
+}) {
+  const { t, langue } = useLanguage()
+
   useEffect(() => {
     const esc = (e) => e.key === 'Escape' && onFermer()
     window.addEventListener('keydown', esc)
@@ -34,13 +45,30 @@ export default function SpecialisationPanel({ arche, stats, restant, deja, onCho
     DATA.playStyles.map((p) => [p.nom, p.nomFr])
   )
 
+  const traduireSpecialisation = (nom) => {
+    return (
+      t.specialisations?.names?.[nom] ??
+      nom
+    )
+  }
+
+  const traduireAttribut = (id, nom) => {
+    if (!id) return nom
+
+    return (
+      t.attributes?.names?.[id] ??
+      t.stats?.[id] ??
+      nom
+    )
+  }
+
   return (
     <div
       className=" fixed inset-0 z-50 flex sm:items-center justify-center bg-black/75 p-2 sm:p-6 w-full lg:max-w-full"
       onClick={onFermer}
       role="dialog"
       aria-modal="true"
-      aria-label="Choisir une spécialisation"
+      aria-label={t.specialisations?.choose ?? 'Choisir une spécialisation'}
     >
       <div
         className="modale flex max-h-[85vh] w-full max-w-3xl flex-col"
@@ -48,73 +76,148 @@ export default function SpecialisationPanel({ arche, stats, restant, deja, onCho
       >
         <header className="flex items-baseline justify-between gap-4 border-b border-[var(--filet)] px-5 py-4">
           <div>
-            <h2 className="text-lg font-semibold">Spécialisation — {arche.nom}</h2>
+            <h2 className="text-lg font-semibold">
+              {t.specialisations?.title ?? 'Spécialisation'} —{' '}
+              {langue === 'en'
+                ? arche.nomEn || arche.nom
+                : arche.nom}
+            </h2>
+
             <p className="modale-aide">
-              Le prix affiché correspond aux points d'attribut manquants pour atteindre les seuils.
+              {t.specialisations?.description ??
+                "Le prix affiché correspond aux points d'attribut manquants pour atteindre les seuils."}
             </p>
           </div>
-          <button className="" onClick={onFermer} aria-label="Fermer">
+
+          <button
+            className=""
+            onClick={onFermer}
+            aria-label={
+              t.common?.close ??
+              'Fermer'
+            }
+          >
             ×
           </button>
         </header>
 
         <div className="overflow-y-auto px-5 py-3">
           {liste.length === 0 ? (
-            
-            <p className="modale-aide py-6">Aucune spécialisation définie pour cet archétype.</p>
+            <p className="modale-aide py-6">
+              {t.specialisations?.empty ??
+                "Aucune spécialisation définie pour cet archétype."}
+            </p>
           ) : null}
+
           <div className="flex flex-col gap-2">
-            {liste.map(({ spec, cout, ouvert, detail, prise }) => {
-              const bloque = !prise && cout > 0 && cout > restant
-              return (
-                <button
-                  key={spec.nom}
-                  className={
-                    'flex flex-col sm:grid sm:grid-cols-[60px_160px_1fr_80px] items-center justify-center gap-4 rounded border border-grey px-3 py-2 text-left ' +
-                    (prise ? ' pris border-white ' : ' opacity-80 ') +
-                    (bloque ? ' border-red-500 ' : '')
-                  }
-                  disabled={prise || bloque}
-                  onClick={() => onChoisir(spec)}
-                >
+            {liste.map(
+              ({
+                spec,
+                cout,
+                ouvert,
+                detail,
+                prise,
+              }) => {
+                const bloque =
+                  !prise &&
+                  cout > 0 &&
+                  cout > restant
+
+                return (
+                  <button
+                    key={spec.nom}
+                    className={
+                      'flex flex-col sm:grid sm:grid-cols-[60px_160px_1fr_80px] items-center justify-center gap-4 rounded border border-grey px-3 py-2 text-left ' +
+                      (prise
+                        ? ' pris border-white '
+                        : ' opacity-80 ') +
+                      (bloque
+                        ? ' border-red-500 '
+                        : '')
+                    }
+                    disabled={
+                      prise || bloque
+                    }
+                    onClick={() =>
+                      onChoisir(spec)
+                    }
+                  >
                     <img
                       src={`${import.meta.env.BASE_URL}img/playstyles/gold/${NOM_FR_PLAYSTYLE[spec.archetypeGagne.slice(0, -1)]}.png`}
                       alt={spec.archetypeGagne}
-                      title={NOM_FR_PLAYSTYLE[spec.archetypeGagne.slice(0, -1)]}
-                      className='h-20 '
+                      title={
+                        NOM_FR_PLAYSTYLE[
+                          spec.archetypeGagne.slice(
+                            0,
+                            -1
+                          )
+                        ]
+                      }
+                      className="h-20 "
                       style={{
                         width: 'unset',
                         maxWidth: 'unset',
                       }}
                     />
 
-                  <span className="w-40 shrink-0 font-medium flex justify-center">{spec.nom}</span>
+                    <span className="w-40 shrink-0 font-medium flex justify-center">
+                      {traduireSpecialisation(
+                        spec.nom
+                      )}
+                    </span>
 
-                  <div className="grid grid-cols-2 gap-2 sm:flex sm:min-w-0">
+                    <div className="grid grid-cols-2 gap-2 sm:flex sm:min-w-0">
+                      {[0, 1, 2].map(
+                        (i) => {
+                          const d =
+                            detail[i]
 
-                    {[0, 1, 2].map((i) => {
-                      const d = detail[i]
-                      return (
-                        <span key={i} className="flex-1 text-sm">
-                          {d ? (
-                            <>
-                              <span className="block font-medium">{d.nom}</span>
-                              <span className="modale-aide">
-                                {d.actuel} → {d.seuil}
-                              </span>
-                            </>
-                          ) : null}
-                        </span>
-                      )
-                    })}
-                  </div>
+                          return (
+                            <span
+                              key={i}
+                              className="flex-1 text-sm"
+                            >
+                              {d ? (
+                                <>
+                                  <span className="block font-medium">
+                                    {traduireAttribut(
+                                      d.attribut,
+                                      d.nom
+                                    )}
+                                  </span>
 
-                  <span className={'w-16 shrink-0 text-center sm:text-right  font-semibold ' + (ouvert ? 'text-green-400' : '')}>
-                    {ouvert ? 'Acquis' : cout}
-                  </span>
-                </button>
-              )
-            })}
+                                  <span className="modale-aide">
+                                    {d.actuel} →{' '}
+                                    {d.seuil}
+                                  </span>
+                                </>
+                              ) : null}
+                            </span>
+                          )
+                        }
+                      )}
+                    </div>
+
+                    <span
+                      className={
+                        'w-16 shrink-0 text-center sm:text-right  font-semibold ' +
+                        (ouvert
+                          ? 'text-green-400'
+                          : '')
+                      }
+                    >
+                      {ouvert
+                        ? (
+                            t.specialisations
+                              ?.acquired ??
+                            'Acquis'
+                          )
+                        : cout}
+                    </span>
+                  </button>
+                )
+              }
+            )}
           </div>
         </div>
       </div>

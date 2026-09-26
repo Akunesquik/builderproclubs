@@ -7,6 +7,7 @@ import {
 } from '../../lib/couts.js'
 
 import { calculerAjustementTaillePoids } from '../../lib/taillePoids.js'
+import { useLanguage } from '../../i18n/context.jsx'
 
 export default function ClassementsAttributs({
   arche,
@@ -14,31 +15,57 @@ export default function ClassementsAttributs({
   stats,
   bonusStats,
 }) {
-  const [avecBonus, setAvecBonus] = useState(false)
+  const { t, langue } =
+    useLanguage()
+
+  const [avecBonus, setAvecBonus] =
+    useState(false)
 
   const classements = useMemo(() => {
-    const attributsExclus = ['gestes', 'mauvais_pied']
+    const attributsExclus = [
+      'gestes',
+      'mauvais_pied',
+    ]
 
-    const attributs = attributsVisibles(arche).filter(
-      (attr) => !attributsExclus.includes(attr.id)
-    )
+    const attributs =
+      attributsVisibles(arche).filter(
+        (attr) =>
+          !attributsExclus.includes(
+            attr.id
+          )
+      )
 
-    const obtenirAjustement = (attr) => {
-      const taillePoids = calculerAjustementTaillePoids({
-        attr,
-        corps,
-        arche,
-      })
+    const obtenirAjustement = (
+      attr
+    ) => {
+      const taillePoids =
+        calculerAjustementTaillePoids({
+          attr,
+          corps,
+          arche,
+        })
 
       const bonusMaitriseInstallation =
         bonusStats?.[attr.id] || 0
 
-      return taillePoids + bonusMaitriseInstallation
+      return (
+        taillePoids +
+        bonusMaitriseInstallation
+      )
     }
 
-    const obtenirStatActuelle = (attr) => {
-      const r = reglage(arche, attr.id)
-      return stats?.[attr.id] ?? r.base
+    const obtenirStatActuelle = (
+      attr
+    ) => {
+      const r = reglage(
+        arche,
+        attr.id
+      )
+
+      return (
+        stats?.[attr.id] ??
+        r.base
+      )
     }
 
     const calculerCoutRestant = (
@@ -46,7 +73,10 @@ export default function ClassementsAttributs({
       niveauActuel,
       cible
     ) => {
-      if (niveauActuel >= cible) return 0
+      if (
+        niveauActuel >= cible
+      )
+        return 0
 
       return coutCumule(
         arche,
@@ -56,149 +86,264 @@ export default function ClassementsAttributs({
       )
     }
 
-    const construireClassementBrut = (cibleType) => {
+    const construireClassementBrut = (
+      cibleType
+    ) => {
       return attributs
         .map((attr) => {
-          const r = reglage(arche, attr.id)
-          const statActuelle = obtenirStatActuelle(attr)
+          const r = reglage(
+            arche,
+            attr.id
+          )
+
+          const statActuelle =
+            obtenirStatActuelle(
+              attr
+            )
 
           const cible =
             cibleType === 'max'
               ? r.max
-              : Math.min(Number(cibleType), r.max)
+              : Math.min(
+                  Number(cibleType),
+                  r.max
+                )
 
           // La stat a déjà atteint le palier
-          if (statActuelle >= cible) {
+          if (
+            statActuelle >=
+            cible
+          ) {
             return null
           }
 
-          const niveauDepart = Math.max(
-            r.min,
-            Math.min(statActuelle, r.max)
-          )
+          const niveauDepart =
+            Math.max(
+              r.min,
+              Math.min(
+                statActuelle,
+                r.max
+              )
+            )
 
-          const cout = calculerCoutRestant(
-            attr,
-            niveauDepart,
-            cible
-          )
+          const cout =
+            calculerCoutRestant(
+              attr,
+              niveauDepart,
+              cible
+            )
 
           return {
             id: attr.id,
-            nom: attr.nom || attr.label || attr.id,
-            categorie: attr.categorie,
+            nom:
+              attr.nom ||
+              attr.label ||
+              attr.id,
+            categorie:
+              attr.categorie,
             min: r.min,
-            actuel: statActuelle,
+            actuel:
+              statActuelle,
             max: r.max,
             cible,
-            depart: niveauDepart,
+            depart:
+              niveauDepart,
             cout,
             ajustement: 0,
           }
         })
         .filter(Boolean)
         .sort((a, b) => {
-          if (a.cout !== b.cout) {
-            return a.cout - b.cout
+          if (
+            a.cout !== b.cout
+          ) {
+            return (
+              a.cout - b.cout
+            )
           }
 
-          if (a.actuel !== b.actuel) {
-            return a.actuel - b.actuel
+          if (
+            a.actuel !== b.actuel
+          ) {
+            return (
+              a.actuel -
+              b.actuel
+            )
           }
 
-          return a.nom.localeCompare(b.nom)
+          return a.nom.localeCompare(
+            b.nom
+          )
         })
     }
 
-    const construireClassementEffectif = (cibleType) => {
-      return attributs
-        .map((attr) => {
-          const r = reglage(arche, attr.id)
-          const statActuelle = obtenirStatActuelle(attr)
-          const ajustement = obtenirAjustement(attr)
+    const construireClassementEffectif =
+      (cibleType) => {
+        return attributs
+          .map((attr) => {
+            const r = reglage(
+              arche,
+              attr.id
+            )
 
-          const valeurEffectiveActuelle =
-            statActuelle + ajustement
+            const statActuelle =
+              obtenirStatActuelle(
+                attr
+              )
 
-          const cible =
-            cibleType === 'max'
-              ? r.max
-              : Math.min(Number(cibleType), r.max)
+            const ajustement =
+              obtenirAjustement(
+                attr
+              )
 
-          // La valeur effective a déjà atteint le palier
-          if (valeurEffectiveActuelle >= cible) {
-            return null
-          }
+            const valeurEffectiveActuelle =
+              statActuelle +
+              ajustement
 
-          const niveauNecessaire = Math.max(
-            r.min,
-            cible - ajustement
-          )
+            const cible =
+              cibleType === 'max'
+                ? r.max
+                : Math.min(
+                    Number(
+                      cibleType
+                    ),
+                    r.max
+                  )
 
-          if (niveauNecessaire > r.max) {
-            return null
-          }
+            // La valeur effective a déjà atteint le palier
+            if (
+              valeurEffectiveActuelle >=
+              cible
+            ) {
+              return null
+            }
 
-          const niveauDepart = Math.max(
-            r.min,
-            Math.min(statActuelle, r.max)
-          )
+            const niveauNecessaire =
+              Math.max(
+                r.min,
+                cible -
+                  ajustement
+              )
 
-          const cout = calculerCoutRestant(
-            attr,
-            niveauDepart,
-            niveauNecessaire
-          )
+            if (
+              niveauNecessaire >
+              r.max
+            ) {
+              return null
+            }
 
-          if (cout <= 0) {
-            return null
-          }
+            const niveauDepart =
+              Math.max(
+                r.min,
+                Math.min(
+                  statActuelle,
+                  r.max
+                )
+              )
 
-          return {
-            id: attr.id,
-            nom: attr.nom || attr.label || attr.id,
-            categorie: attr.categorie,
-            min: r.min,
-            actuel: statActuelle,
-            actuelEffectif: valeurEffectiveActuelle,
-            max: r.max,
-            niveauNecessaire,
-            cible,
-            depart: niveauDepart,
-            cout,
-            ajustement,
-          }
-        })
-        .filter(Boolean)
-        .sort((a, b) => {
-          if (a.cout !== b.cout) {
-            return a.cout - b.cout
-          }
+            const cout =
+              calculerCoutRestant(
+                attr,
+                niveauDepart,
+                niveauNecessaire
+              )
 
-          if (a.actuel !== b.actuel) {
-            return a.actuel - b.actuel
-          }
+            if (cout <= 0) {
+              return null
+            }
 
-          return a.nom.localeCompare(b.nom)
-        })
-    }
+            return {
+              id: attr.id,
+              nom:
+                attr.nom ||
+                attr.label ||
+                attr.id,
+              categorie:
+                attr.categorie,
+              min: r.min,
+              actuel:
+                statActuelle,
+              actuelEffectif:
+                valeurEffectiveActuelle,
+              max: r.max,
+              niveauNecessaire,
+              cible,
+              depart:
+                niveauDepart,
+              cout,
+              ajustement,
+            }
+          })
+          .filter(Boolean)
+          .sort((a, b) => {
+            if (
+              a.cout !== b.cout
+            ) {
+              return (
+                a.cout - b.cout
+              )
+            }
+
+            if (
+              a.actuel !== b.actuel
+            ) {
+              return (
+                a.actuel -
+                b.actuel
+              )
+            }
+
+            return a.nom.localeCompare(
+              b.nom
+            )
+          })
+      }
 
     return {
       brut: {
-        minMax: construireClassementBrut('max'),
-        min80: construireClassementBrut(80),
-        min85: construireClassementBrut(85),
-        min90: construireClassementBrut(90),
+        minMax:
+          construireClassementBrut(
+            'max'
+          ),
+        min80:
+          construireClassementBrut(
+            80
+          ),
+        min85:
+          construireClassementBrut(
+            85
+          ),
+        min90:
+          construireClassementBrut(
+            90
+          ),
       },
 
       effectif: {
-        minMax: construireClassementEffectif('max'),
-        min80: construireClassementEffectif(80),
-        min85: construireClassementEffectif(85),
-        min90: construireClassementEffectif(90),
+        minMax:
+          construireClassementEffectif(
+            'max'
+          ),
+        min80:
+          construireClassementEffectif(
+            80
+          ),
+        min85:
+          construireClassementEffectif(
+            85
+          ),
+        min90:
+          construireClassementEffectif(
+            90
+          ),
       },
     }
-  }, [arche, corps, bonusStats, stats])
+  }, [
+    arche,
+    corps,
+    bonusStats,
+    stats,
+  ])
 
   const colonnes = [
     {
@@ -219,13 +364,36 @@ export default function ClassementsAttributs({
     },
   ]
 
-  const cle = avecBonus ? 'effectif' : 'brut'
+  const cle = avecBonus
+    ? 'effectif'
+    : 'brut'
 
-  const explication = avecBonus
-    ? 'Coût en AP pour chaque attribut, en tenant compte de tes bonus/malus actuels (taille, poids, maîtrises, installations du club).'
-    : "Coût en AP pour amener chaque attribut de sa valeur actuelle jusqu'à la cible, sans tenir compte des bonus/malus (taille, poids, maîtrises, installations). Les moins chers en premier : c'est l'ordre le plus rentable pour dépenser tes AP."
+  const explication =
+    avecBonus
+      ? t.rankings
+          ?.withBonusesDescription ??
+        'Coût en AP pour chaque attribut, en tenant compte de tes bonus/malus actuels (taille, poids, maîtrises, installations du club).'
+      : t.rankings
+          ?.withoutBonusesDescription ??
+        "Coût en AP pour amener chaque attribut de sa valeur actuelle jusqu'à la cible, sans tenir compte des bonus/malus (taille, poids, maîtrises, installations). Les moins chers en premier : c'est l'ordre le plus rentable pour dépenser tes AP."
 
-  const afficherLigne = (item, index) => (
+  const traduireAttribut = (
+    id,
+    nom
+  ) => {
+    if (!id) return nom
+
+    return (
+      t.attributes?.names?.[id] ??
+      t.stats?.[id] ??
+      nom
+    )
+  }
+
+  const afficherLigne = (
+    item,
+    index
+  ) => (
     <div
       key={item.id}
       className="classement-ligne"
@@ -236,12 +404,16 @@ export default function ClassementsAttributs({
 
       <div className="classement-info">
         <div className="classement-nom">
-          {item.nom}
+          {traduireAttribut(
+            item.id,
+            item.nom
+          )}
         </div>
 
         <div className="classement-details">
           {avecBonus &&
-          item.actuelEffectif !== undefined
+          item.actuelEffectif !==
+            undefined
             ? `${item.actuelEffectif} → ${item.cible}`
             : `${item.actuel} → ${item.cible}`}
         </div>
@@ -254,7 +426,9 @@ export default function ClassementsAttributs({
           fontWeight: 700,
         }}
       >
-        {item.cout} AP
+        {item.cout}{' '}
+        {t.attributes?.ap ??
+          'AP'}
       </div>
     </div>
   )
@@ -265,21 +439,34 @@ export default function ClassementsAttributs({
         <div className="classements-header-top">
           <div>
             <h2>
-              Classement des coûts d'attributs
+              {t.rankings
+                ?.title ??
+                "Classement des coûts d'attributs"}
             </h2>
 
             <p className="classements-archetype">
-              {arche.nom}
+              {langue === 'en'
+                ? arche.nomEn ||
+                  arche.nom
+                : arche.nom}
             </p>
           </div>
 
           <button
             type="button"
-            onClick={() => setAvecBonus((v) => !v)}
+            onClick={() =>
+              setAvecBonus(
+                (v) => !v
+              )
+            }
             className={`classements-toggle ${
-              avecBonus ? 'active' : ''
+              avecBonus
+                ? 'active'
+                : ''
             }`}
-            aria-pressed={avecBonus}
+            aria-pressed={
+              avecBonus
+            }
           >
             <span className="classements-toggle-track">
               <span className="classements-toggle-thumb" />
@@ -287,8 +474,12 @@ export default function ClassementsAttributs({
 
             <span className="classements-toggle-label">
               {avecBonus
-                ? 'Avec bonus / malus'
-                : 'Sans bonus / malus'}
+                ? t.rankings
+                    ?.withBonuses ??
+                  'Avec bonus / malus'
+                : t.rankings
+                    ?.withoutBonuses ??
+                  'Sans bonus / malus'}
             </span>
           </button>
         </div>
@@ -296,7 +487,8 @@ export default function ClassementsAttributs({
         <p
           className="classements-explication"
           style={{
-            whiteSpace: 'nowrap',
+            whiteSpace:
+              'nowrap',
           }}
         >
           {explication}
@@ -307,13 +499,15 @@ export default function ClassementsAttributs({
 
               <span
                 style={{
-                  color: '#f59e0b',
+                  color:
+                    '#f59e0b',
                   fontWeight: 700,
                 }}
               >
-                ⚠️ Rappel : les bonus/malus ne sont pas
-                pris en compte pour le déblocage des
-                PlayStyles.
+                ⚠️{' '}
+                {t.rankings
+                  ?.bonusWarning ??
+                  'Rappel : les bonus/malus ne sont pas pris en compte pour le déblocage des PlayStyles.'}
               </span>
             </>
           )}
@@ -321,27 +515,40 @@ export default function ClassementsAttributs({
       </div>
 
       <div className="classements-grid">
-        {colonnes.map((colonne) => {
-          const liste =
-            classements?.[cle]?.[colonne.id] ?? []
+        {colonnes.map(
+          (colonne) => {
+            const liste =
+              classements?.[
+                cle
+              ]?.[
+                colonne.id
+              ] ?? []
 
-          return (
-            <div
-              key={colonne.id}
-              className="classement-colonne"
-            >
-              <h3>
-                {colonne.titre}
-              </h3>
+            return (
+              <div
+                key={
+                  colonne.id
+                }
+                className="classement-colonne"
+              >
+                <h3>
+                  {t.rankings
+                    ?.columns?.[
+                    colonne.id
+                  ] ??
+                    colonne.titre}
+                </h3>
 
-              <div className="classement-liste">
-                {liste.map(afficherLigne)}
+                <div className="classement-liste">
+                  {liste.map(
+                    afficherLigne
+                  )}
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          }
+        )}
       </div>
     </section>
   )
 }
-

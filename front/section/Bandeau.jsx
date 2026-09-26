@@ -17,6 +17,8 @@ import MaitrisesPanel from '../popup/MaitrisesPanel.jsx'
 import JaugePoints from '../molecule/composants/JaugePoints.jsx'
 import DATA from '../../data/fc27.json'
 
+import { useLanguage } from '../../i18n/context.jsx'
+
 export default function Bandeau({
   arche,
   stats,
@@ -34,8 +36,9 @@ export default function Bandeau({
   onNiveau,
   maitrises,
   setMaitrises,
-
 }) {
+  const { t, langue } = useLanguage()
+
   const [ouvert, setOuvert] = useState(null)
   const [ouvertSpec, setOuvertSpec] = useState(false)
 
@@ -69,8 +72,6 @@ export default function Bandeau({
 
     return [...noms]
   }, [installations])
-
- 
 
   function retirer(i, e) {
     e.stopPropagation()
@@ -113,7 +114,7 @@ export default function Bandeau({
         <div className="w-full lg:flex-1 min-w-0 max-w-50">
 
           <div className="categorie-tete">
-            <h2>Spécialité</h2>
+            <h2>{t.specialisations?.title ?? 'Spécialisation'}</h2>
           </div>
 
           <div className="specialite-ligne">
@@ -127,7 +128,10 @@ export default function Bandeau({
               onClick={() => setOuvertSpec(true)}
               title={
                 specPerdue
-                  ? 'Les seuils ne sont plus atteints'
+                  ? (
+                      t.specialisations?.thresholdsLost ??
+                      'Les seuils ne sont plus atteints'
+                    )
                   : undefined
               }
             >
@@ -140,7 +144,8 @@ export default function Bandeau({
                   />
 
                   <span className="pr-2 text-left text-sm font-bold">
-                    {spChoisie.nom}
+                    {t.specialisations?.names?.[spChoisie.nom] ??
+                      spChoisie.nom}
                   </span>
                 </>
               ) : (
@@ -150,7 +155,8 @@ export default function Bandeau({
                   </span>
 
                   <span className="slot-cat">
-                    spécialisation
+                    {t.specialisations?.slot ??
+                      'spécialisation'}
                   </span>
                 </>
               )}
@@ -167,7 +173,11 @@ export default function Bandeau({
             <h2>PlayStyles</h2>
 
             <span className="categorie-moy">
-              <em>équipés</em>
+              <em>
+                {t.playstyles?.equipped ??
+                  'équipés'}
+              </em>
+
               <h2>
                 {slots.filter(Boolean).length}/{NB_SLOTS}
               </h2>
@@ -193,7 +203,10 @@ export default function Bandeau({
                   onClick={() => setOuvert(i)}
                   title={
                     perdu
-                      ? 'Les seuils ne sont plus atteints'
+                      ? (
+                          t.playstyles?.thresholdsLost ??
+                          'Les seuils ne sont plus atteints'
+                        )
                       : undefined
                   }
                 >
@@ -219,7 +232,8 @@ export default function Bandeau({
                       </span>
 
                       <span className="slot-cat flex items-center min-h-[80px] max-w-[78px]">
-                        emplacement libre
+                        {t.playstyles?.freeSlot ??
+                          'emplacement libre'}
                       </span>
                     </>
                   )}
@@ -229,12 +243,14 @@ export default function Bandeau({
 
             {/* ==================== PLAYSTYLE(S) VIA INSTALLATIONS DU CLUB ==================== */}
             {playstylesInstallations.map((nom) => {
-              const frenchName = NOM_FR_PLAYSTYLE[nom] ?? nom
+              const frenchName =
+                NOM_FR_PLAYSTYLE[nom] ?? nom
+
               let path
-              if (frenchName.at(-1) === '+'){
-                path = `${import.meta.env.BASE_URL}img/playstyles/gold/${frenchName.slice(0,-1)}.png`
-              }
-              else{
+
+              if (frenchName.at(-1) === '+') {
+                path = `${import.meta.env.BASE_URL}img/playstyles/gold/${frenchName.slice(0, -1)}.png`
+              } else {
                 path = `${import.meta.env.BASE_URL}img/playstyles/silver/${frenchName}.png`
               }
 
@@ -263,7 +279,8 @@ export default function Bandeau({
 
           <div className="categorie-tete">
             <h2 className="installations-titre">
-              Bonus additionnels
+              {t.bandeau?.additionalBonuses ??
+                'Bonus additionnels'}
             </h2>
           </div>
 
@@ -275,7 +292,10 @@ export default function Bandeau({
 
           {/* ================= MAÎTRISES ================= */}
           <div className="mt-[10px]">
-            <MaitrisesPanel  selections={maitrises}  onChange={setMaitrises}/>
+            <MaitrisesPanel
+              selections={maitrises}
+              onChange={setMaitrises}
+            />
           </div>
 
         </div>
@@ -285,33 +305,37 @@ export default function Bandeau({
         <div className="w-full lg:flex-1 min-w-0 max-w-80">
 
           <div className="playstyles-summary w-full">
-            <JaugePoints  depenses={depenses}  budget={budget}  niveau={niveau}  onNiveau={onNiveau}/>
+            <JaugePoints
+              depenses={depenses}
+              budget={budget}
+              niveau={niveau}
+              onNiveau={onNiveau}
+            />
           </div>
 
         </div>
 
       </div>
-   
 
 
       {/* ==================== POPUP PLAYSTYLE ==================== */}
 
       {ouvert !== null ? (
         <PlaystylePanel
-        arche={arche}
-        stats={stats}
-        restant={restant}
-        deja={slots.filter(Boolean)}
-        onChoisir={choisir}
-        onRetirer={retirerDepuisLaPopup}
-        onFermer={() => setOuvert(null)}
-        spec={spec}
+          arche={arche}
+          stats={stats}
+          restant={restant}
+          deja={slots.filter(Boolean)}
+          onChoisir={choisir}
+          onRetirer={retirerDepuisLaPopup}
+          onFermer={() => setOuvert(null)}
+          spec={spec}
         />
       ) : null}
 
 
       {/* ================== POPUP SPÉCIALISATION ====================== */}
-          
+
       {ouvertSpec ? (
         <SpecialisationPanel
           arche={arche}

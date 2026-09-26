@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react'
+import { useLanguage } from '../../i18n/context.jsx'
 import DATA from '../../data/fc27.json'
 
-export default function MaitrisesPanel({ selections, onChange }) {
+export default function MaitrisesPanel({
+  selections,
+  onChange
+}) {
+  const { t, langue } = useLanguage()
+
   const [ouvert, setOuvert] = useState(false)
 
   useEffect(() => {
@@ -13,10 +19,16 @@ export default function MaitrisesPanel({ selections, onChange }) {
       }
     }
 
-    window.addEventListener('keydown', fermerAvecEchap)
+    window.addEventListener(
+      'keydown',
+      fermerAvecEchap
+    )
 
     return () => {
-      window.removeEventListener('keydown', fermerAvecEchap)
+      window.removeEventListener(
+        'keydown',
+        fermerAvecEchap
+      )
     }
   }, [ouvert])
 
@@ -26,7 +38,9 @@ export default function MaitrisesPanel({ selections, onChange }) {
     ATT: 2,
   }
 
-  const archetypes = [...DATA.archetypes].sort((a, b) => {
+  const archetypes = [
+    ...DATA.archetypes
+  ].sort((a, b) => {
     const groupDiff =
       (groupeOrder[a.groupe] ?? 999) -
       (groupeOrder[b.groupe] ?? 999)
@@ -38,22 +52,34 @@ export default function MaitrisesPanel({ selections, onChange }) {
 
   const niveauxToShow = [10, 30]
 
-  function toggleNiveau(archetypeId, niveau) {
+  function toggleNiveau(
+    archetypeId,
+    niveau
+  ) {
     onChange((prev) => {
-      const nouveau = { ...(prev || {}) }
+      const nouveau = {
+        ...(prev || {})
+      }
 
-      const niveauxActuels = nouveau[archetypeId] || []
+      const niveauxActuels =
+        nouveau[archetypeId] || []
 
-      if (niveauxActuels.includes(niveau)) {
+      if (
+        niveauxActuels.includes(niveau)
+      ) {
         // Retire le niveau
-        const nouveauxNiveaux = niveauxActuels.filter(
-          (n) => n !== niveau
-        )
+        const nouveauxNiveaux =
+          niveauxActuels.filter(
+            (n) => n !== niveau
+          )
 
-        if (nouveauxNiveaux.length === 0) {
+        if (
+          nouveauxNiveaux.length === 0
+        ) {
           delete nouveau[archetypeId]
         } else {
-          nouveau[archetypeId] = nouveauxNiveaux
+          nouveau[archetypeId] =
+            nouveauxNiveaux
         }
       } else {
         // Ajoute le niveau
@@ -69,35 +95,92 @@ export default function MaitrisesPanel({ selections, onChange }) {
 
   function togglePalier(niveau) {
     onChange((prev) => {
-      const nouveau = { ...(prev || {}) }
+      const nouveau = {
+        ...(prev || {})
+      }
 
-      const tousSelectionnes = archetypes.every((archetype) =>
-        (nouveau[archetype.id] || []).includes(niveau)
-      )
+      const tousSelectionnes =
+        archetypes.every(
+          (archetype) =>
+            (
+              nouveau[
+                archetype.id
+              ] || []
+            ).includes(niveau)
+        )
 
-      archetypes.forEach((archetype) => {
-        const niveauxActuels = nouveau[archetype.id] || []
+      archetypes.forEach(
+        (archetype) => {
+          const niveauxActuels =
+            nouveau[
+              archetype.id
+            ] || []
 
-        if (tousSelectionnes) {
-          const nouveauxNiveaux = niveauxActuels.filter(
-            (n) => n !== niveau
-          )
+          if (tousSelectionnes) {
+            const nouveauxNiveaux =
+              niveauxActuels.filter(
+                (n) => n !== niveau
+              )
 
-          if (nouveauxNiveaux.length === 0) {
-            delete nouveau[archetype.id]
-          } else {
-            nouveau[archetype.id] = nouveauxNiveaux
+            if (
+              nouveauxNiveaux.length === 0
+            ) {
+              delete nouveau[
+                archetype.id
+              ]
+            } else {
+              nouveau[
+                archetype.id
+              ] = nouveauxNiveaux
+            }
+          } else if (
+            !niveauxActuels.includes(
+              niveau
+            )
+          ) {
+            nouveau[
+              archetype.id
+            ] = [
+              ...niveauxActuels,
+              niveau,
+            ].sort(
+              (a, b) => a - b
+            )
           }
-        } else if (!niveauxActuels.includes(niveau)) {
-          nouveau[archetype.id] = [
-            ...niveauxActuels,
-            niveau,
-          ].sort((a, b) => a - b)
         }
-      })
+      )
 
       return nouveau
     })
+  }
+
+  const traduireAttribut = (
+    attribut
+  ) => {
+    if (langue === 'en') {
+      return (
+        t.attributes?.names?.[
+          attribut
+        ] ??
+        t.stats?.[attribut] ??
+        attribut
+      )
+    }
+
+    return attribut
+  }
+
+  const traduireArchetype = (
+    archetype
+  ) => {
+    if (langue === 'en') {
+      return (
+        archetype.nomEn ??
+        archetype.nom
+      )
+    }
+
+    return archetype.nom
   }
 
   return (
@@ -115,7 +198,8 @@ export default function MaitrisesPanel({ selections, onChange }) {
         />
 
         <span className="club-facilities-label">
-          Maîtrises
+          {t.masteries?.title ??
+            'Maîtrises'}
         </span>
       </button>
 
@@ -130,29 +214,42 @@ export default function MaitrisesPanel({ selections, onChange }) {
             className="relative w-[800px] max-w-full p-4.5 border border-filet-fort rounded modale"
             role="dialog"
             aria-modal="true"
-            aria-label="Maîtrises"
-            onClick={(event) => event.stopPropagation()}
+            aria-label={
+              t.masteries?.title ??
+              'Maîtrises'
+            }
+            onClick={(event) =>
+              event.stopPropagation()
+            }
           >
             {/* Header */}
             <header className="flex flex-col gap-4 pb-3 border-b border-filet">
-              <div className='flex items-center justify-between gap-4 w-full'>
+              <div className="flex items-center justify-between gap-4 w-full">
                 <h2 className="text-xl font-semibold">
-                  Maîtrises
+                  {t.masteries?.title ??
+                    'Maîtrises'}
                 </h2>
 
                 <button
                   type="button"
-                  onClick={() => setOuvert(false)}
-                  aria-label="Fermer"
+                  onClick={() =>
+                    setOuvert(false)
+                  }
+                  aria-label={
+                    t.masteries?.close ??
+                    'Fermer'
+                  }
                   className="text-3xl"
                 >
                   ×
                 </button>
               </div>
-              <p className='text-sm'>
-                Vous pouvez cliquer sur Niveau 'nombre' pour valider toutes les maitrises de ce palier
+
+              <p className="text-sm">
+                {t.masteries
+                  ?.instructions ??
+                  "Vous pouvez cliquer sur Niveau 'nombre' pour valider toutes les maitrises de ce palier"}
               </p>
-              
             </header>
 
             {/* Tableau */}
@@ -161,109 +258,169 @@ export default function MaitrisesPanel({ selections, onChange }) {
               {/* Header */}
               <div className="table-header">
                 <div className="table-cell-header">
-                  Archétype
+                  {t.masteries
+                    ?.archetype ??
+                    'Archétype'}
                 </div>
 
-                {niveauxToShow.map((niveau) => {
-                  const tousSelectionnes = archetypes.every((archetype) =>
-                    (selections?.[archetype.id] || []).includes(niveau)
-                  )
-
-                  return (
-                    <div key={niveau} className="table-cell-header p-1 flex justify-start">
-                      <button
-                        type="button"
-                        onClick={() => togglePalier(niveau)}
-                        className={`w-full h-full rounded border transition-all p-4 ${
-                          tousSelectionnes
-                            ? 'border-green-400 bg-green-400/10'
-                            : 'border-transparent hover:border-filet-fort'
-                        }`}
-                      >
-                        Niveau {niveau}
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* Archétypes */}
-              {archetypes.map((archetype) => (
-                <div
-                  key={archetype.id}
-                  className="table-row"
-                >
-                  {/* Nom de l'archétype */}
-                  <div className="flex gap-2 items-center installation-name">
-                    <img
-                      src={`${import.meta.env.BASE_URL}img/archetypes/${archetype.id.toLowerCase()}.svg`}
-                      alt={archetype.nom}
-                      className="w-16 h-16"
-                    />
-
-                    {archetype.nom}
-                  </div>
-
-                  {/* Niveaux */}
-                  {niveauxToShow.map((niveau) => {
-                    const niveauxSelectionnes = selections?.[archetype.id] || []
-                    const isSelected = niveauxSelectionnes.includes(niveau)
-                    const maitrise = DATA.maitrise?.[archetype.id] || {}
-                    const bonus = maitrise[String(niveau)] || []
+                {niveauxToShow.map(
+                  (niveau) => {
+                    const tousSelectionnes =
+                      archetypes.every(
+                        (archetype) =>
+                          (
+                            selections?.[
+                              archetype.id
+                            ] || []
+                          ).includes(
+                            niveau
+                          )
+                      )
 
                     return (
                       <div
                         key={niveau}
-                        className="niveau-bonus flex"
+                        className="table-cell-header p-1 flex justify-start"
                       >
                         <button
                           type="button"
                           onClick={() =>
-                            toggleNiveau(
-                              archetype.id,
+                            togglePalier(
                               niveau
                             )
                           }
-                          className={`
-                            w-full h-full
-                            text-left
-                            rounded
-                            border
-                            transition-all
-                            p-2
-                            ${
-                              isSelected
-                                ? 'border-green-400 bg-green-400/10'
-                                : 'border-transparent hover:border-filet-fort'
-                            }
-                          `}
+                          className={`w-full h-full rounded border transition-all p-4 ${
+                            tousSelectionnes
+                              ? 'border-green-400 bg-green-400/10'
+                              : 'border-transparent hover:border-filet-fort'
+                          }`}
                         >
-                          {bonus.length > 0 ? (
-                            bonus.map(({ attribut, gain }) => {
-                              const attr =
-                                DATA.attributs.find(
-                                  (a) => a.id === attribut
-                                )
-
-                              return (
-                                <div key={attribut}>
-                                  {attr
-                                    ? attr.nom
-                                    : attribut}{' '}
-                                  +{gain}
-                                </div>
-                              )
-                            })
-                          ) : (
-                            '-'
-                          )}
+                          {t.masteries
+                            ?.level ??
+                            'Niveau'}{' '}
+                          {niveau}
                         </button>
                       </div>
                     )
-                  })}
-                </div>
-              ))}
+                  }
+                )}
+              </div>
 
+              {/* Archétypes */}
+              {archetypes.map(
+                (archetype) => (
+                  <div
+                    key={archetype.id}
+                    className="table-row"
+                  >
+                    {/* Nom de l'archétype */}
+                    <div className="flex gap-2 items-center installation-name">
+                      <img
+                        src={`${import.meta.env.BASE_URL}img/archetypes/${archetype.id.toLowerCase()}.svg`}
+                        alt={traduireArchetype(
+                          archetype
+                        )}
+                        className="w-16 h-16"
+                      />
+
+                      {traduireArchetype(
+                        archetype
+                      )}
+                    </div>
+
+                    {/* Niveaux */}
+                    {niveauxToShow.map(
+                      (niveau) => {
+                        const niveauxSelectionnes =
+                          selections?.[
+                            archetype.id
+                          ] || []
+
+                        const isSelected =
+                          niveauxSelectionnes.includes(
+                            niveau
+                          )
+
+                        const maitrise =
+                          DATA.maitrise?.[
+                            archetype.id
+                          ] || {}
+
+                        const bonus =
+                          maitrise[
+                            String(niveau)
+                          ] || []
+
+                        return (
+                          <div
+                            key={niveau}
+                            className="niveau-bonus flex"
+                          >
+                            <button
+                              type="button"
+                              onClick={() =>
+                                toggleNiveau(
+                                  archetype.id,
+                                  niveau
+                                )
+                              }
+                              className={`
+                                w-full h-full
+                                text-left
+                                rounded
+                                border
+                                transition-all
+                                p-2
+                                ${
+                                  isSelected
+                                    ? 'border-green-400 bg-green-400/10'
+                                    : 'border-transparent hover:border-filet-fort'
+                                }
+                              `}
+                            >
+                              {bonus.length >
+                              0 ? (
+                                bonus.map(
+                                  ({
+                                    attribut,
+                                    gain
+                                  }) => {
+                                    const attr =
+                                      DATA.attributs.find(
+                                        (a) =>
+                                          a.id ===
+                                          attribut
+                                      )
+
+                                    return (
+                                      <div
+                                        key={
+                                          attribut
+                                        }
+                                      >
+                                        {attr
+                                          ? traduireAttribut(
+                                              attr.id
+                                            )
+                                          : traduireAttribut(
+                                              attribut
+                                            )}{' '}
+                                        +{gain}
+                                      </div>
+                                    )
+                                  }
+                                )
+                              ) : (
+                                '-'
+                              )}
+                            </button>
+                          </div>
+                        )
+                      }
+                    )}
+                  </div>
+                )
+              )}
             </div>
           </div>
         </div>
