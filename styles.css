@@ -56,7 +56,7 @@ h2 {
 }
 
 .app {
-  max-width: 1380px;
+  max-width: 1420px;
   margin: 0 auto;
   padding: 0 20px 64px;
 }
@@ -92,6 +92,7 @@ h2 {
 .accroche {
   margin: 10px 0 0;
   color: var(--attenue);
+  max-width:500px
 }
 
 .app-header {
@@ -207,7 +208,8 @@ h2 {
   justify-content: space-between;
   font-size: 13px;
   color: var(--attenue);
-  margin-bottom: 8px;
+  margin-bottom: 2px;
+  margin-top: 6px;
 }
 
 .champ-label strong {
@@ -329,6 +331,7 @@ h2 {
   padding: 10px 14px;
   font-size: 14px;
   font-weight: 500;
+  max-height: 40px;
 }
 
 .bouton:hover {

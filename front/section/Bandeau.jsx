@@ -189,16 +189,15 @@ export default function Bandeau({
             {Array.from({ length: NB_SLOTS }, (_, i) => {
               const nom = slots[i]
               const ps = nom ? parNom(nom) : null
-              const perdu =
-                ps && !estDebloque(arche, stats, ps)
+              const perdu = ps && !estDebloque(arche, stats, ps)
 
               return (
                 <button
                   key={i}
                   className={
-                    (ps ? ' rempli' : '') +
-                    (perdu ? ' perdu' : '') +
-                    ' flex flex-row items-center gap-2 border border-gray-500 rounded p-2 max-w-full'
+                    (ps ? 'rempli ' : '') +
+                    (perdu ? 'perdu ' : '') +
+                    'relative flex flex-row items-center gap-2 border border-gray-500 rounded p-2 w-[100px]'
                   }
                   onClick={() => setOuvert(i)}
                   title={
@@ -221,19 +220,15 @@ export default function Bandeau({
                       <span
                         onClick={(e) => retirer(i, e)}
                         role="button"
+                        className="absolute top-0 left-1 text-xl"
                       >
                         ×
                       </span>
                     </>
                   ) : (
                     <>
-                      <span className="slot-plus">
-                        +
-                      </span>
-
-                      <span className="slot-cat flex items-center min-h-[80px] max-w-[78px]">
-                        {t.playstyles?.freeSlot ??
-                          'emplacement libre'}
+                      <span className="slot-cat flex justify-center items-center min-h-[80px] w-full">
+                        {t.playstyles?.freeSlot ?? 'emplacement libre'}
                       </span>
                     </>
                   )}

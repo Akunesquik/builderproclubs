@@ -33,7 +33,7 @@ const en = {
     max: 'MAX',
     increase: 'Increase',
     decrease: 'Decrease',
-    average: 'avg',
+    average: 'Avg.',
     starsOf: (value, max) =>
       `${value} stars out of ${max}`,
     lower: 'Decrease',
@@ -43,7 +43,7 @@ const en = {
       ballControl: 'Ball Control',
       shooting: 'Shooting',
       passing: 'Passing',
-      defense: 'Defense',
+      defense: 'Defending',
       pace: 'Pace',
       physical: 'Physical',
       other: 'Other',
@@ -56,7 +56,7 @@ const en = {
       conduite: 'Ball Control',
       dribbles: 'Dribbling',
       calme: 'Composure',
-      pos_off: 'Attacking Positioning',
+      pos_off: 'Positioning',
       finition: 'Finishing',
       puissance_tir: 'Shot Power',
       tir_loin: 'Long Shots',
@@ -82,7 +82,9 @@ const en = {
       gestes: 'Skill Moves',
       mauvais_pied: 'Weak Foot',
     },
+
   },
+
 
   body: {
     title: 'Body',
