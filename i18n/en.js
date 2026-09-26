@@ -34,7 +34,8 @@ const en = {
     increase: 'Increase',
     decrease: 'Decrease',
     average: 'avg',
-    starsOf: (value, max) => `${value} stars out of ${max}`,
+    starsOf: (value, max) =>
+      `${value} stars out of ${max}`,
     lower: 'Decrease',
     raise: 'Increase',
 
@@ -115,63 +116,42 @@ const en = {
     empty:
       'No specialization defined for this archetype.',
     acquired: 'Acquired',
+
     names: {
-    'Aucune': 'None',
-
-    // Facilitateur
-    'Facilitateur+': 'Progressor+',
-    'Pionnier': 'Pioneer',
-    'Vigile': 'Sentinel',
-
-    // Boss
-    'Boss+': 'Boss+',
-    'Passage en force': 'Enforcer',
-    'Capitano': 'Captain',
-
-    // Traqueur
-    'Traqueur+': 'Marauder+',
-    'Bolide': 'Speedster',
-    'Athlète': 'Athlete',
-
-    // Trouble-fête
-    'Trouble-fête+': 'Disruptor+',
-    'Intraitable': 'Unstoppable',
-    'Pilier': 'Pillar',
-
-    // Récupérateur
-    'Récupérateur+': 'Recycler+',
-    'Pilote': 'Driver',
-    'Pickpocket': 'Pickpocket',
-
-    // Maestro
-    'Maestro+': 'Maestro+',
-    'Démolisseur': 'Destroyer',
-    'Fiable': 'Reliable',
-
-    // Créateur
-    'Créateur+': 'Creator+',
-    'Architecte': 'Architect',
-    'Sniper': 'Sniper',
-
-    // Étincelle
-    'Étincelle+': 'Spark+',
-    'Joker': 'Wildcard',
-    'As': 'Ace',
-
-    // Magicien
-    'Magicien+': 'Magician+',
-    'Surdoué': 'Prodigy',
-    'Envahisseur': 'Invader',
-
-    // Finisseur
-    'Finisseur+': 'Finisher+',
-    'Sangsue': 'Leech',
-    'Chasseur': 'Hunter',
-
-    // Point d'appui
-    "Point d'appui+": 'Target+',
-    'Électron libre': 'Free Spirit',
-    'Coureur': 'Runner',
+      'Aucune': 'None',
+      'Facilitateur+': 'Progressor+',
+      'Pionnier': 'Pioneer',
+      'Vigile': 'Sentinel',
+      'Boss+': 'Boss+',
+      'Passage en force': 'Enforcer',
+      'Capitano': 'Captain',
+      'Traqueur+': 'Marauder+',
+      'Bolide': 'Speedster',
+      'Athlète': 'Athlete',
+      'Trouble-fête+': 'Disruptor+',
+      'Intraitable': 'Unstoppable',
+      'Pilier': 'Pillar',
+      'Récupérateur+': 'Recycler+',
+      'Pilote': 'Driver',
+      'Pickpocket': 'Pickpocket',
+      'Maestro+': 'Maestro+',
+      'Démolisseur': 'Destroyer',
+      'Fiable': 'Reliable',
+      'Créateur+': 'Creator+',
+      'Architecte': 'Architect',
+      'Sniper': 'Sniper',
+      'Étincelle+': 'Spark+',
+      'Joker': 'Wildcard',
+      'As': 'Ace',
+      'Magicien+': 'Magician+',
+      'Surdoué': 'Prodigy',
+      'Envahisseur': 'Invader',
+      'Finisseur+': 'Finisher+',
+      'Sangsue': 'Leech',
+      'Chasseur': 'Hunter',
+      "Point d'appui+": 'Target+',
+      'Électron libre': 'Free Spirit',
+      'Coureur': 'Runner',
     },
   },
 
@@ -210,19 +190,14 @@ const en = {
 
   rankings: {
     title: 'Attribute cost ranking',
-
     withBonuses: 'With bonuses / penalties',
     withoutBonuses: 'Without bonuses / penalties',
-
     withBonusesDescription:
       'AP cost for each attribute, taking your current bonuses/penalties into account (height, weight, masteries, club facilities).',
-
     withoutBonusesDescription:
       'AP cost to raise each attribute from its current value to the target, without taking bonuses/penalties into account (height, weight, masteries, club facilities). Cheapest attributes are shown first.',
-
     bonusWarning:
       'Reminder: bonuses/penalties do not count towards PlayStyle unlock requirements.',
-
     columns: {
       minMax: 'CURRENT → MAX',
       min80: 'CURRENT → 80',
@@ -244,41 +219,6 @@ const en = {
     totalCost: 'Total cost',
     noData: 'No facility data available',
     close: 'Close',
-
-    names: {
-      'analyste-des-perf': 'Performance Analyst',
-      'bottes-de-compression': 'Compression Boots',
-      'coach-passes': 'Passing Coach',
-      'coach-tacles': 'Tackling Coach',
-      'coach-tactique-attaque': 'Attacking Tactical Coach',
-      'coach-tactique-defense': 'Defensive Tactical Coach',
-      'coach-technique': 'Technical Coach',
-      'coach-tirs': 'Shooting Coach',
-      'entretien-des-terrains': 'Pitch Maintenance',
-      'equipe-de-prep-physique': 'Physical Preparation Team',
-      'exercice-d-agilite': 'Agility Drill',
-      'exercice-de-finition-rapide': 'Quick Finishing Drill',
-      'exercice-de-force': 'Strength Drill',
-      'exercice-de-passe': 'Passing Drill',
-      'exercice-tir-rasant-appuye': 'Low Driven Shot Drill',
-      'filet-de-finition': 'Finishing Net',
-      'filet-de-futnet': 'Footvolley Net',
-      'gilets-gps': 'GPS Vests',
-      'mannequins-coup-de-pied-arrete': 'Free Kick Dummies',
-      'mini-cages': 'Mini Goals',
-      'parachute-de-vitesse': 'Speed Parachute',
-      'piquets-de-slalom': 'Slalom Poles',
-      'piste-d-athletisme': 'Athletics Track',
-      'prof-de-yoga': 'Yoga Instructor',
-      'psychologue-du-sport': 'Sports Psychologist',
-      'rebondisseurs': 'Rebounders',
-      'recruteur': 'Scout',
-      'responsable-du-materiel': 'Equipment Manager',
-      'salle-de-musculation': 'Gym',
-      'salle-rv': 'VR Room',
-      'scientifique-du-sport': 'Sports Scientist',
-      'terrain-d-entrainement': 'Training Pitch',
-    },
   },
 
   masteries: {
@@ -305,12 +245,15 @@ const en = {
   },
 
   bonusStats: {
-    adjustment: 'Height/weight and mastery adjustment',
+    adjustment:
+      'Height/weight and mastery adjustment',
   },
 
   footer: {
-    createdBy: 'Made by Klebar and Loup (Symphonyyyyyyyyyyy)',
-    disclaimer: 'Not affiliated with EA Sports.',
+    createdBy:
+      'Made by Klebar and Loup (Symphonyyyyyyyyyyy)',
+    disclaimer:
+      'Not affiliated with EA Sports.',
   },
 
   stats: {

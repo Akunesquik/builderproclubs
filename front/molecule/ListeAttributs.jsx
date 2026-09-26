@@ -15,14 +15,51 @@ export default function ListeAttributs({
 }) {
   const { t, langue } = useLanguage()
 
+  const categorieNormalisee =
+    categorie?.replace(/\u00A0/g, ' ').trim()
+
+  const traductionsCategories = {
+    'Conduite de balle':
+      t.attributes?.categories?.ballControl ??
+      'Ball Control',
+
+    'Tir':
+      t.attributes?.categories?.shooting ??
+      'Shooting',
+
+    'Passes':
+      t.attributes?.categories?.passing ??
+      'Passing',
+
+    'Défense':
+      t.attributes?.categories?.defense ??
+      'Defense',
+
+    'Rapidité':
+      t.attributes?.categories?.pace ??
+      'Pace',
+
+    'Physique':
+      t.attributes?.categories?.physical ??
+      'Physical',
+
+    'Autres':
+      t.attributes?.categories?.other ??
+      'Other',
+  }
+
   const categorieTraduite =
-    t.categories?.[categorie] ?? categorie
+    langue === 'en'
+      ? traductionsCategories[
+          categorieNormalisee
+        ] ?? categorie
+      : categorie
 
   const categoriePhysique =
-    categorie === 'Physique'
+    categorieNormalisee === 'Physique'
 
   const categorieAutres =
-    categorie === 'Autres'
+    categorieNormalisee === 'Autres'
 
   return (
     <section
@@ -38,12 +75,20 @@ export default function ListeAttributs({
         <span
           className={
             'categorie-moy ' +
-            (categorieAutres ? 'invisible' : '')
+            (categorieAutres
+              ? 'invisible'
+              : '')
           }
           aria-hidden={categorieAutres}
         >
-          <em>{t.attributes?.average ?? 'moy'}</em>
-          {moyenne(attributs, stats)}
+          <em>
+            {t.attributes?.average ?? 'moy'}
+          </em>
+
+          {moyenne(
+            attributs,
+            stats
+          )}
         </span>
       </div>
 
@@ -55,9 +100,14 @@ export default function ListeAttributs({
         }
       >
         {attributs.map((a) => {
-          const reg = reglage(arche, a.id)
+          const reg = reglage(
+            arche,
+            a.id
+          )
+
           const valeur =
             stats[a.id] ?? reg.base
+
           const cout = coutPoint(
             arche,
             a.id,

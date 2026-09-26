@@ -305,7 +305,7 @@ h2 {
 
 .actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
   gap: 8px;
   align-self: flex-start;

@@ -80,7 +80,7 @@ export default function Header({
         <button
           type="button"
           onClick={changerLangue}
-          className="bouton fantome !px-2"
+          className="bouton fantome !px-2 shrink-0"
           aria-label={
             langue === 'fr'
               ? t.language.english
